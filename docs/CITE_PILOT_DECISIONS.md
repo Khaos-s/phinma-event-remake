@@ -36,6 +36,6 @@ The public event page offers **Upcoming**, **Ongoing**, and **Past** filters. Cl
 
 ## Still to verify before feature code
 
-- A real organizer's current approval steps, pain point, and workaround, for the required `PROBLEM.md` brief.
+- The product owner has not yet observed a real CITE Council approval request. Confirm an organizer's current steps, pain point, and workaround for the required `PROBLEM.md` brief; do not present a guessed process as observed fact.
 - The first organizer and administrator account identities (email addresses can be provided privately when setting up Auth; never send passwords or secret keys).
 - Whether the public should see a separate council logo as well as an event poster. One required image is the current assumption.
