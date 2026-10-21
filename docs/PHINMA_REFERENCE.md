@@ -27,7 +27,9 @@ The site's [homepage](https://ui.phinma.edu.ph/) uses a different, broader set o
 
 ## Implications for the first release
 
+The product-owner decisions for the CITE Council pilot are in [CITE_PILOT_DECISIONS.md](CITE_PILOT_DECISIONS.md).
+
 - Start with an event owned by one organizing college or its council. Reuse the official college and program names rather than the legacy app's three hard-coded BSIT, HTM, and CRIM choices.
-- Treat program and year level as optional event audience filters until organizers confirm how they target announcements. Do not require a student roster to publish an event.
+- For the CITE pilot, show the BSIT program and a target-year choice on each event. Do not require a student roster to publish an event.
 - Let authenticated, approved organizers manage only their own college's event proposals. Anyone may view published events without signing in.
 - For the CITE example, the council chairman submits an event proposal to the PHINMA Event administration. A PHINMA Event administrator must approve it before it becomes public. This is a central approval role across colleges, separate from the organizer role.
