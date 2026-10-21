@@ -4,7 +4,7 @@ These are product-owner decisions from 2026-10-21. They describe the first relea
 
 ## People and approval
 
-- **CITE Council organizer:** The CITE Council chairman is the first event organizer. An authorized council account signs in, creates an event proposal, and submits it for review.
+- **CITE Council organizer:** The CITE Council chairman or another person granted organizer access signs in and creates an event. Submission sends it directly to the administrator for review.
 - **PHINMA Event administrator:** A central administrator account reviews proposals. Only this role may approve or reject them. Approval publishes an event automatically.
 - **Public visitor:** Anyone may view approved events without signing in. Unapproved proposals and review notes are private.
 - The first release covers CITE Council events for the College of Information Technology and its Bachelor of Science in Information Technology (BSIT) program. The school website calls the grouping a *college*; the product owner calls it a *department* and the council *CITE Council*.
@@ -12,7 +12,7 @@ These are product-owner decisions from 2026-10-21. They describe the first relea
 ## Event and review flow
 
 1. The organizer enters one event image (poster or logo), event name, description, start date and time, end date and time, department, course, and target year level.
-2. The organizer saves a draft or submits it. Submission moves it to **pending review**. A pending event is visible to its organizer and the administrator, not to the public.
+2. Submitting the event form creates a **pending review** event automatically. There is no separate approval request or council approval stage. A pending event is visible to its organizer and the administrator, not to the public.
 3. Submission adds the proposal to the administrator's in-app review queue and its pending count. The administrator reads the full proposal and approves or rejects it. Rejection includes a reason the organizer can read. An approved event appears on the public event page immediately.
 4. An organizer may revise a rejected proposal and submit it again. Changes to an approved event require a new review before the changes appear publicly; the initial build may simply lock approved events and defer editing them.
 
@@ -28,7 +28,7 @@ The public event page offers **Upcoming**, **Ongoing**, and **Past** filters. Cl
 
 ## Data and access boundaries
 
-- Use Supabase Auth for the organizer and administrator. Roles must be assigned by a trusted administrator, never by public sign-up or editable profile fields.
+- Use Supabase Auth for the organizer and administrator. Begin with one test organizer account and one test administrator account. Roles must be assigned by a trusted administrator, never by public sign-up or editable profile fields.
 - Store proposals and review state in an `events` table. Store role assignments separately from user-editable data. Every table needs Row Level Security (RLS): public reads approved events only; organizers read their own proposals and may submit/revise only their own nonapproved proposals; administrators read and review all proposals. No client may promote its own role or set approval state directly.
 - Store event images in Supabase Storage. Pending images must not become publicly readable through a predictable storage URL; public images are readable only for approved events. Validate image type and size at upload.
 - Database timestamps should preserve absolute instants; display and form entry use Asia/Manila. Require end time after start time.
@@ -37,5 +37,5 @@ The public event page offers **Upcoming**, **Ongoing**, and **Past** filters. Cl
 ## Still to verify before feature code
 
 - The product owner has not yet observed a real CITE Council approval request. Confirm an organizer's current steps, pain point, and workaround for the required `PROBLEM.md` brief; do not present a guessed process as observed fact.
-- The first organizer and administrator account identities (email addresses can be provided privately when setting up Auth; never send passwords or secret keys).
+- The hosted Supabase dashboard must be signed into by the project owner before test Auth users and roles can be created. Do not put their passwords or other credentials in this repository.
 - Whether the public should see a separate council logo as well as an event poster. One required image is the current assumption.
