@@ -29,4 +29,5 @@ The site's [homepage](https://ui.phinma.edu.ph/) uses a different, broader set o
 
 - Start with an event owned by one organizing college or its council. Reuse the official college and program names rather than the legacy app's three hard-coded BSIT, HTM, and CRIM choices.
 - Treat program and year level as optional event audience filters until organizers confirm how they target announcements. Do not require a student roster to publish an event.
-- Let authenticated, approved organizers manage only their own college's events. Decide whether published events are public and whether council posts require staff approval before writing access policies.
+- Let authenticated, approved organizers manage only their own college's event proposals. Anyone may view published events without signing in.
+- A designated department head or administrator must approve an event before it becomes public. The exact approver title and current approval process still need confirmation; do not treat an organizer's submission as publication.
