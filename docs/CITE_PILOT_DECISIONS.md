@@ -13,7 +13,7 @@ These are product-owner decisions from 2026-10-21. They describe the first relea
 
 1. The organizer enters one event image (poster or logo), event name, description, start date and time, end date and time, department, course, and target year level.
 2. The organizer saves a draft or submits it. Submission moves it to **pending review**. A pending event is visible to its organizer and the administrator, not to the public.
-3. The administrator reads the full proposal and approves or rejects it. Rejection includes a reason the organizer can read. An approved event appears on the public event page immediately.
+3. Submission adds the proposal to the administrator's in-app review queue and its pending count. The administrator reads the full proposal and approves or rejects it. Rejection includes a reason the organizer can read. An approved event appears on the public event page immediately.
 4. An organizer may revise a rejected proposal and submit it again. Changes to an approved event require a new review before the changes appear publicly; the initial build may simply lock approved events and defer editing them.
 
 The year choice is **All college years** by default, with 1st, 2nd, 3rd, and 4th Year as provisional specific choices for BSIT. The product owner said an event can be for all college years. PHINMA UI's official site does not provide a definitive year-level taxonomy for every program, so these choices must be confirmed before expanding beyond BSIT. Department and course are fixed to the CITE/BSIT pilot values initially; the form still shows them so the audience is clear.
@@ -24,7 +24,7 @@ The public event page offers **Upcoming**, **Ongoing**, and **Past** filters. Cl
 
 - Public event list with status filters and event details, including the image, audience, and schedule.
 - Organizer sign-in, event form, and own-submissions list with review status and rejection reason.
-- Administrator sign-in and review queue, with full proposal, approval, and rejection.
+- Administrator sign-in and review queue with a pending count, full proposal, approval, and rejection.
 
 ## Data and access boundaries
 
