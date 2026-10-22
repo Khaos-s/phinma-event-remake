@@ -6,7 +6,7 @@ import { createBrowserClient } from "@supabase/ssr";
  * This runs in the user's browser, so it can ONLY ever use the anon key.
  * The anon key is safe to expose: it is Row Level Security on your tables
  * that decides who can read and write what. If RLS is off, your data is
- * public to the whole internet — see supabase/sql/001-example.sql.
+ * public to the whole internet — see supabase/sql/001_cite_events.sql.
  */
 export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

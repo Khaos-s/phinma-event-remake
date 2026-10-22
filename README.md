@@ -1,121 +1,27 @@
-# PHINMA AI Builder — team template
+# PHINMA Event
 
-**Your live URL:** https://phinma-event-remake.vercel.app
+The CITE Council pilot for PHINMA University of Iloilo. Visitors can view approved events at [phinma-event-remake.vercel.app](https://phinma-event-remake.vercel.app). A CITE organizer submits an event, and a PHINMA Event administrator approves or rejects it. Approval publishes the event immediately.
 
-This is your team's starting point. It is already a working Next.js app
-that deploys to Vercel. You will delete the starter page and build your
-own thing on top.
+## Run locally
 
-## Setup (once per team, ~10 minutes)
-
-**1. Make your own copy**
-
-On this repo's GitHub page, click **Use this template → Create a new
-repository**. Name it after your team. Then add your teammates:
-**Settings → Collaborators**.
-
-**2. Put it on the internet — before writing any code**
-
-Go to [vercel.com](https://vercel.com), sign in with GitHub, then
-**Add New → Project** and import your new repo. Accept the defaults and
-click **Deploy**.
-
-In about a minute you will have a live URL. Open it on your phone. Paste
-it at the top of this file.
-
-From now on, every push to `main` updates that URL automatically.
-
-**3. Get it on your laptop**
-
-Only one laptop per team needs this — the **driver** laptop. Rotate who
-drives at every ticket so everyone gets a turn.
+Use Node.js 24, then:
 
 ```bash
-git clone <your repo URL>
-cd <your repo>
-npm install
+npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. You should see the same page as your live
-URL.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` using the project's Supabase URL and publishable key. The same two variables must be configured in Vercel. Never put a Supabase secret or service role key in this app.
 
-**4. Start Claude Code**
+The database setup is in `supabase/sql/001_cite_events.sql` and `supabase/sql/002_cleanup_unsubmitted_images.sql`, applied in order. Supabase Auth users need trusted `role_assignments` records for either `cite_organizer` or `event_admin`; the website cannot grant roles. See `docs/SPEC.md` for the workflow and access rules.
+
+## Checks
 
 ```bash
-claude
+npm run lint
+npm run build
+node --test src/lib/events.test.ts
 ```
 
-Type `/` and check you can see `grill-with-docs`, `pitch`, `to-spec`,
-`to-tickets`, `implement` and `code-review`. If you can, you are ready.
-
-Then run:
-
-```
-/grill-with-docs
-```
-
-Have a real problem in mind, and a real person you have watched struggle
-with it. You will be asked.
-
-## Supabase (Ticket 02 — Session 2, not before)
-
-1. Create a project at [supabase.com](https://supabase.com) (free tier).
-2. In your project, click **Connect** and copy the Project URL and the
-   **publishable key** (it starts with `sb_publishable_`). Older projects
-   call it the `anon` key. Either works.
-3. Copy `.env.example` to `.env.local` and paste them in. The publishable
-   key goes in `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Add the **same two variables** in Vercel: **Settings → Environment
-   Variables**, then redeploy. Forgetting this step is the single most
-   common reason the local app works and the live one does not.
-5. Read `supabase/sql/001-example.sql`. It explains Row Level Security,
-   which is what stops strangers reading your data.
-
-## The commands
-
-| Command            | What it does                                      |
-|--------------------|---------------------------------------------------|
-| `/grill-with-docs` | Interviews you hard about the problem. Start here |
-| `/pitch`           | Turns that into your three-minute Session 1 pitch |
-| `/to-spec`         | Writes the spec for what you will build           |
-| `/to-tickets`      | Breaks the spec into small tickets                |
-| `/implement`       | Builds one ticket, then deploys it                |
-| `/code-review`     | Checks it is correct and safe before you demo     |
-
-Run them in that order. The agent will refuse to write feature code
-before there is a spec — that is deliberate, not a bug.
-
-## The rules
-
-1. **Deploy first.** Live URL before features.
-2. **No spec, no code.**
-3. **One user, one job, demoable in three minutes.**
-4. **Row Level Security on, always.** Your app is public. Without RLS,
-   so is your data.
-5. **Never commit `.env.local`.**
-
-## What is already here
-
-```
-src/app/page.tsx          the starter page — delete it and build yours
-src/components/ui/        Button, Card, Input, Textarea, Label
-src/lib/supabase/         database clients, with comments
-supabase/sql/             your database changes, numbered
-docs/                     problem, pitch, spec and tickets live here
-CLAUDE.md                 the rules the agent follows
-```
-
-## When something breaks
-
-- **Build fails on Vercel but works locally** — run `npm run build` on
-  your laptop. That is the exact command Vercel runs. It will show you
-  the same error.
-- **Live site cannot reach the database** — your environment variables
-  are probably missing in Vercel, or you did not redeploy after adding
-  them.
-- **`npm audit` shows warnings** — these are in the development
-  toolchain only. Ignore them; the "fix" breaks the project.
-- **The agent keeps failing at the same thing** — stop it, and ask it to
-  explain what it thinks is wrong instead of trying again. Then get a
-  facilitator.
+The pilot uses the College of Information Technology and BSIT. Other councils, student rosters, and email notifications are later work.

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-// TODO: change these to your app's name and description.
 export const metadata: Metadata = {
-  title: "PHINMA Builder",
-  description: "Built at the PHINMA AI Builder Workshop",
+  title: "PHINMA Event | University of Iloilo",
+  description: "Find approved CITE Council events at PHINMA University of Iloilo.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

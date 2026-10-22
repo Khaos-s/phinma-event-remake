@@ -3,42 +3,23 @@
 /* Design tokens. Change these to re-skin the whole app at once —
    every component below reads from them. */
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
+  color-scheme: light;
+  --background: #f7faf7;
+  --foreground: #173227;
   --card: #ffffff;
-  --card-foreground: #0a0a0a;
-  --primary: #1a1a1a;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #1a1a1a;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #0a0a0a;
+  --card-foreground: #173227;
+  --primary: #096344;
+  --primary-foreground: #ffffff;
+  --secondary: #e8f1ea;
+  --secondary-foreground: #173227;
+  --muted: #e8f1ea;
+  --muted-foreground: #52675a;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #d8e5db;
+  --input: #c8d8cb;
+  --ring: #096344;
   --radius: 0.625rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    --card: #141414;
-    --card-foreground: #fafafa;
-    --primary: #fafafa;
-    --primary-foreground: #1a1a1a;
-    --secondary: #27272a;
-    --secondary-foreground: #fafafa;
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa;
-    --destructive: #ef4444;
-    --destructive-foreground: #fafafa;
-    --border: #27272a;
-    --input: #3f3f46;
-    --ring: #d4d4d8;
-  }
 }
 
 @theme inline {

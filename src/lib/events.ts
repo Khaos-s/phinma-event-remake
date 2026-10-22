@@ -1,0 +1,58 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export const DEPARTMENT = "College of Information Technology";
+export const COURSE = "BSIT";
+export const IMAGE_BUCKET = "event-images";
+
+export type EventRow = {
+  id: string;
+  created_by: string;
+  title: string;
+  description: string;
+  image_path: string;
+  starts_at: string;
+  ends_at: string;
+  department: string;
+  course: string;
+  target_year: number | null;
+  status: "pending" | "approved" | "rejected";
+  rejection_reason: string | null;
+  created_at: string;
+};
+
+export type EventStage = "upcoming" | "ongoing" | "past";
+
+export function eventStage(event: Pick<EventRow, "starts_at" | "ends_at">, now: number): EventStage {
+  if (now < Date.parse(event.starts_at)) return "upcoming";
+  if (now < Date.parse(event.ends_at)) return "ongoing";
+  return "past";
+}
+
+export function philippineTimeToIso(value: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
+  const time = new Date(`${value}+08:00`);
+  if (Number.isNaN(time.getTime())) return null;
+  return new Date(time.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16) === value
+    ? time.toISOString()
+    : null;
+}
+
+export function formatPhilippineTime(value: string) {
+  return new Intl.DateTimeFormat("en-PH", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Manila",
+  }).format(new Date(value));
+}
+
+export function yearLabel(year: number | null) {
+  return year === null ? "All college years" : `${year}${year === 1 ? "st" : year === 2 ? "nd" : year === 3 ? "rd" : "th"} Year`;
+}
+
+export async function signedImageUrls(client: SupabaseClient, events: EventRow[]) {
+  const urls = await Promise.all(events.map(async (event) => {
+    const { data } = await client.storage.from(IMAGE_BUCKET).createSignedUrl(event.image_path, 3600);
+    return [event.id, data?.signedUrl] as const;
+  }));
+  return Object.fromEntries(urls.filter((item): item is readonly [string, string] => Boolean(item[1])));
+}
