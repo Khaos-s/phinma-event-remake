@@ -34,8 +34,8 @@ The public event page offers **Upcoming**, **Ongoing**, and **Past** filters. Cl
 - Database timestamps should preserve absolute instants; display and form entry use Asia/Manila. Require end time after start time.
 - Do not copy the legacy MySQL student, credential, or password tables into this pilot. No student roster is needed to publish an event.
 
-## Still to verify before feature code
+## Open checks
 
-- The product owner has not yet observed a real CITE Council approval request. Confirm an organizer's current steps, pain point, and workaround for the required `PROBLEM.md` brief; do not present a guessed process as observed fact.
-- The hosted Supabase dashboard must be signed into by the project owner before test Auth users and roles can be created. Do not put their passwords or other credentials in this repository.
+- The product owner has not yet observed a real CITE Council approval request. Confirm an organizer's current steps, pain point, and workaround; do not present a guessed process as observed fact.
+- Two confirmed test Supabase Auth users have been assigned the product-owner-specified organizer and administrator roles. Do not put their passwords or email addresses in this repository.
 - Whether the public should see a separate council logo as well as an event poster. One required image is the current assumption.
