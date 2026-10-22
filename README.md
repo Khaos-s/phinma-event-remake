@@ -1,6 +1,6 @@
 # PHINMA Event
 
-The CITE Council pilot for PHINMA University of Iloilo. Visitors can view approved events at [phinma-event-remake.vercel.app](https://phinma-event-remake.vercel.app). A CITE organizer submits an event, and a PHINMA Event administrator approves or rejects it. Approval publishes the event immediately.
+The CITE Council pilot for PHINMA University of Iloilo. Visitors can view approved events at [phinma-ui-event.vercel.app](https://phinma-ui-event.vercel.app). A CITE organizer submits an event, and a PHINMA Event administrator approves or rejects it. Approval publishes the event immediately.
 
 ## Run locally
 
