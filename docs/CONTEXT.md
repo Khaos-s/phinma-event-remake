@@ -2,7 +2,7 @@
 
 ## Product and current scope
 
-PHINMA UI Event is a university event board for PHINMA University of Iloilo. Public discovery includes department and course filters based on the university's college-programs directory. The first authorized publishing workflow supports CITE Council and BSIT. An organizer submits an event once; a PHINMA Event administrator reviews it. Approval publishes it automatically. Visitors browse approved events without an account.
+PHINMA UI Event is a university event board for PHINMA University of Iloilo. Authorized council, faculty, and staff organizers submit for their assigned organization and department. A PHINMA Event administrator reviews each submission; approval publishes it automatically. Visitors browse approved events without an account. The public department/course catalog follows the university's college-programs directory. The existing CITE Council test assignment is preserved; additional real publishers require trusted setup described in `ORGANIZER_SETUP.md`.
 
 The source repository was an unfinished Flask/MySQL application. The remake uses Next.js App Router, React, TypeScript, the existing Tailwind UI components, hosted Supabase Auth/Postgres/Storage, and Vercel. Legacy student enrollment, scholarship hours, water reporting, relief operations, and other domains appearing in reference documents are not part of this application.
 
@@ -12,10 +12,10 @@ The source repository was an unfinished Flask/MySQL application. The remake uses
 | --- | --- | --- |
 | Signed-out visitor | `/`, `/events`, `/events/[id]` | Browse and preview published events, open full details, and filter by time, department, course, organizer, and year |
 | Registered member without a privileged grant | `/account` | View own account and browse events |
-| `cite_organizer` | `/organizer` | Submit a pending event and view own submissions |
+| `organizer` | `/organizer` | Submit a pending event for the assigned organization/department and view own submissions |
 | `event_admin` | `/admin` | Read submissions and approve or reject pending events |
 
-Everyone uses `/login`. Roles are trusted assignments in the database; no role chooser, editable profile field, or browser state grants permission. RLS and role-checking RPCs enforce the permissions. The client session provider personalizes navigation and hides inaccessible workspaces.
+Everyone uses `/login`. Roles and organization membership are trusted assignments in the database; no role chooser, editable profile field, or browser state grants permission. RLS, foreign keys, a scope trigger, and role-checking review RPCs enforce permissions. The legacy `cite_organizer` spelling resolves to scoped organizer access for compatibility with existing accounts.
 
 ## Runtime and delivery
 
@@ -31,7 +31,8 @@ Everyone uses `/login`. Roles are trusted assignments in the database; no role c
 - `src/app/`: public home, all-events directory, individual event details, shared login, member account, organizer form, administrator queue.
 - `src/lib/academics.ts`: sourced college/program catalog; provenance and naming notes in `docs/ACADEMIC_REFERENCE.md`.
 - `src/components/`: session provider, public header/footer, workspace shell, event cards/status, and UI primitives.
-- `src/lib/events.ts`: shared event types, time conversion, audience/search filters, and signed image URL loading.
+- `src/lib/events.ts`: shared event types and organization relation selection, time conversion, audience/search filters, and signed image URL loading.
+- `src/lib/posters.ts`: shared poster MIME/size validation. Pre-submit previews use local object URLs with cleanup; full public details support a poster zoom dialog.
 - `src/lib/roles.ts`: safe role resolution and landing destinations. Database authorization is independent of this UI helper.
 - `supabase/sql/`: applied numbered schema and storage policy changes. Add a new migration for changes.
 - `docs/SPEC.md`: accepted behavior; `DATA_MODEL.md`: schema/access; `METHODOLOGY.md`: workflow and calculations.
@@ -42,7 +43,7 @@ Use PHINMA green and gold, neutral light surfaces, clear text, and real campus i
 
 ## Current limitations
 
-The university's existing approval process has not been observed in person. Real account sign-in and a live submission/approval test still need an owner-operated check. Email notifications, other councils, public registration, event editing/resubmission, and enrollment records are outside the current pilot. See `LATER.md` before expanding scope.
+The university's existing approval process has not been observed in person. Real password sign-in and Storage upload still need an owner-operated check; database role/publication tests use transaction-scoped identities and roll back all fixtures. One organization per organizer account and one course per event are supported. Multi-organization memberships, email notifications, public registration, event editing/resubmission, and enrollment records remain later work. See `LATER.md` before expanding scope.
 
 ## Reuse
 

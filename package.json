@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test src/lib/events.test.ts src/lib/roles.test.ts"
+    "test": "node --test src/lib/events.test.ts src/lib/roles.test.ts src/lib/posters.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

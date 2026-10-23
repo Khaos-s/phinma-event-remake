@@ -2,11 +2,11 @@
 
 import { createContext, Fragment, useContext, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { AppRole, resolveRole } from "@/lib/roles";
+import { AppRole, Organization, resolveRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
-type Account = { user: User | null; role: AppRole | null; loading: boolean; error: string };
-const initialAccount: Account = { user: null, role: null, loading: true, error: "" };
+type Account = { user: User | null; role: AppRole | null; organization: Organization | null; loading: boolean; error: string };
+const initialAccount: Account = { user: null, role: null, organization: null, loading: true, error: "" };
 const AuthContext = createContext<Account>(initialAccount);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -22,18 +22,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { user }, error: userError } = await client.auth.getUser();
       if (!active || request !== revision) return;
       if (!user || userError) {
-        setAccount({ user: null, role: null, loading: false, error: "" });
+        setAccount({ ...initialAccount, loading: false });
         return;
       }
 
       const { data, error } = await client.from("role_assignments")
-        .select("role").eq("user_id", user.id).maybeSingle();
+        .select("role,organization_id").eq("user_id", user.id).maybeSingle();
+      const role = resolveRole(data?.role);
+      let organization: Organization | null = null;
+      let accessError = Boolean(error);
+      if (!error && role === "organizer") {
+        if (!data?.organization_id) accessError = true;
+        else {
+          const result = await client.from("organizations").select("id,name,department").eq("id", data.organization_id).maybeSingle();
+          organization = result.data as Organization | null;
+          accessError = Boolean(result.error || !organization);
+        }
+      }
       if (active && request === revision) {
         setAccount({
           user,
-          role: error ? null : resolveRole(data?.role),
+          role: accessError ? null : role,
+          organization: accessError ? null : organization,
           loading: false,
-          error: error ? "We couldn’t check your account access. Please refresh and try again." : "",
+          error: accessError ? "We couldn’t check your account access. Please refresh and try again." : "",
         });
       }
     }
@@ -42,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const request = ++revision;
       clearTimeout(timer);
       if (!session) {
-        setAccount({ user: null, role: null, loading: false, error: "" });
+        setAccount({ ...initialAccount, loading: false });
         return;
       }
       setAccount((current) => current.user?.id === session.user.id ? current : initialAccount);

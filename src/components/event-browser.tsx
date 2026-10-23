@@ -3,14 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/event-card";
 import { EventDetails } from "@/components/event-details";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { colleges } from "@/lib/academics";
-import { EventRow, EventStage, eventStage, matchesEventFilters, signedImageUrls } from "@/lib/events";
+import { EVENT_SELECT, EventRow, EventStage, eventStage, matchesEventFilters, signedImageUrls } from "@/lib/events";
+import type { Organization } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
 const timeFilters: { value: EventStage | "all"; label: string }[] = [
@@ -28,6 +29,8 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
   const [department, setDepartment] = useState("all");
   const [course, setCourse] = useState("all");
   const [organizer, setOrganizer] = useState("all");
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<EventRow | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -37,15 +40,18 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
   useEffect(() => {
     let active = true;
     async function load() {
-      const { data, error: loadError } = await client.from("events").select("*")
-        .eq("status", "approved").order("starts_at", { ascending: true });
+      const [eventResult, organizationResult] = await Promise.all([
+        client.from("events").select(EVENT_SELECT).eq("status", "approved").order("starts_at", { ascending: true }),
+        client.from("organizations").select("id,name,department").order("name"),
+      ]);
       if (!active) return;
-      if (loadError) setError("Events could not be loaded. Please refresh the page to try again.");
+      if (eventResult.error || organizationResult.error) setError("Events could not be loaded. Please refresh the page to try again.");
       else {
-        const rows = (data ?? []) as EventRow[];
+        const rows = (eventResult.data ?? []) as unknown as EventRow[];
         const urls = await signedImageUrls(client, rows);
         if (!active) return;
         setEvents(rows);
+        setOrganizations(organizationResult.data ?? []);
         setImageUrls(urls);
         setError("");
       }
@@ -81,13 +87,15 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
           <div className="section-heading"><div>{home ? <h2 id="events-title">Explore the event board</h2> : <h1 id="events-title">All events</h1>}<p>Discover events by department, course, organizer, and year level.</p></div>{home ? <Link href="/events" className="text-link">View all events<ArrowRight size={16} aria-hidden="true" /></Link> : <span className="calendar-timezone"><CalendarDays size={16} aria-hidden="true" />Philippine time · PHT</span>}</div>
           <div className="event-board-layout">
             <aside className="board-filters" aria-label="Event audience filters">
-              <div className="panel-section-heading"><h3>Find your event</h3><SlidersHorizontal size={16} aria-hidden="true" /></div>
+              <div className="panel-section-heading"><h3>Find your event</h3><SlidersHorizontal className="desktop-filter-icon" size={16} aria-hidden="true" /><button type="button" className="filter-toggle" aria-controls="event-filter-controls" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>{filtersOpen ? "Hide filters" : "Show filters"}<ChevronDown size={16} aria-hidden="true" /></button></div>
+              <div id="event-filter-controls" className="board-filter-controls" data-open={filtersOpen}>
               <div className="filter-field"><label htmlFor="event-search">Search events</label><div className="event-search"><Search size={16} aria-hidden="true" /><input id="event-search" type="search" placeholder="Search by name or topic" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>
               <div className="filter-field"><label htmlFor="department-filter">Department</label><select id="department-filter" value={department} onChange={(event) => { setDepartment(event.target.value); setCourse("all"); }}>{["all", ...colleges.map((college) => college.name)].map((value) => <option key={value} value={value}>{value === "all" ? "All departments" : value}</option>)}</select></div>
               <div className="filter-field"><label htmlFor="course-filter">Course</label><select id="course-filter" value={course} onChange={(event) => setCourse(event.target.value)}><option value="all">All courses</option>{courses.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}</select></div>
-              <div className="filter-field"><label htmlFor="organizer-filter">Organizer</label><select id="organizer-filter" value={organizer} onChange={(event) => setOrganizer(event.target.value)}><option value="all">All organizers</option><option value="CITE Council">CITE Council</option></select></div>
+              <div className="filter-field"><label htmlFor="organizer-filter">Organizer</label><select id="organizer-filter" value={organizer} onChange={(event) => setOrganizer(event.target.value)}><option value="all">All organizers</option>{organizations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
               <div className="filter-field"><label htmlFor="year-filter">Year level</label><select id="year-filter" value={year} onChange={(event) => setYear(event.target.value)}><option value="all">All year levels</option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
               <button type="button" className="clear-filters" onClick={clearFilters}>Reset filters</button>
+              </div>
             </aside>
             <div className="board-results">
               <div className="event-toolbar"><div className="event-tabs" role="group" aria-label="Filter events by time">{timeFilters.map((item) => <button type="button" key={item.value} className={filter === item.value ? "selected" : ""} aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label}</button>)}</div><span className="event-result-count" role="status">{loading ? "Loading…" : error ? "Unavailable" : `${visible.length} ${visible.length === 1 ? "event" : "events"}`}</span></div>

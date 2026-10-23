@@ -35,7 +35,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
     };
   }, [open]);
   const links = [
-    ...(role === "cite_organizer" ? [{ href: "/organizer", label: "Create an event", icon: Plus }, { href: "/organizer#submissions", label: "My submissions", icon: FileText }] : []),
+    ...(role === "organizer" ? [{ href: "/organizer", label: "Create an event", icon: Plus }, { href: "/organizer#submissions", label: "My submissions", icon: FileText }] : []),
     ...(role === "event_admin" ? [{ href: "/admin", label: "Review events", icon: ClipboardCheck }, { href: "/admin#reviewed", label: "Reviewed events", icon: FileText }] : []),
     { href: "/events", label: "Browse events", icon: CalendarDays },
     { href: "/account", label: "My account", icon: UserRound },
@@ -54,7 +54,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
         {user && <SignOutButton />}
       </aside>
       <div className="workspace-body">
-        <header className="workspace-topbar"><button type="button" className="workspace-menu icon-button" aria-label="Open navigation" aria-expanded={open} aria-controls="workspace-navigation" onClick={() => setOpen(!open)}><Menu size={20} /></button><div className="workspace-breadcrumb"><span>PHINMA UI Event</span><ChevronRight size={14} aria-hidden="true" /><strong>{title}</strong></div><div className="workspace-top-actions">{role && <span className="role-badge"><ShieldCheck size={13} aria-hidden="true" />{role === "event_admin" ? "Administrator" : role === "cite_organizer" ? "Organizer" : "Member"}</span>}<Link href="/events" className="public-site-link">View event board<ArrowUpRight size={15} aria-hidden="true" /></Link></div></header>
+        <header className="workspace-topbar"><button type="button" className="workspace-menu icon-button" aria-label="Open navigation" aria-expanded={open} aria-controls="workspace-navigation" onClick={() => setOpen(!open)}><Menu size={20} /></button><div className="workspace-breadcrumb"><span>PHINMA UI Event</span><ChevronRight size={14} aria-hidden="true" /><strong>{title}</strong></div><div className="workspace-top-actions">{role && <span className="role-badge"><ShieldCheck size={13} aria-hidden="true" />{role === "event_admin" ? "Administrator" : role === "organizer" ? "Organizer" : "Member"}</span>}<Link href="/events" className="public-site-link">View event board<ArrowUpRight size={15} aria-hidden="true" /></Link></div></header>
         <main id="main-content" className="workspace-main">{children}</main>
         <footer className="workspace-footer"><span>PHINMA University of Iloilo</span><span>Campus events · Philippine time</span></footer>
       </div>

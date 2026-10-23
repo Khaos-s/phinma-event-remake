@@ -1,11 +1,12 @@
 import { CalendarDays, GraduationCap, School } from "lucide-react";
 import { EventStatus } from "@/components/event-status";
+import { PosterViewer } from "@/components/poster-viewer";
 import { EventRow, eventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
 
 export function EventDetails({ event, imageUrl, now, preview = false }: { event: EventRow; imageUrl?: string; now: number; preview?: boolean }) {
   return (
     <article className={`event-details ${preview ? "is-preview" : ""}`}>
-      <div className="event-detail-poster">{imageUrl ? (
+      <div className="event-detail-poster">{imageUrl && !preview ? <PosterViewer imageUrl={imageUrl} title={event.title} /> : imageUrl ? (
         // Signed private Storage links bypass Next's image cache.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imageUrl} alt={`Poster for ${event.title}`} />
@@ -16,6 +17,7 @@ export function EventDetails({ event, imageUrl, now, preview = false }: { event:
         <dl className="event-facts">
           <div><dt><CalendarDays size={17} aria-hidden="true" />Schedule</dt><dd><time dateTime={event.starts_at}>{formatPhilippineTime(event.starts_at)}</time><span>to <time dateTime={event.ends_at}>{formatPhilippineTime(event.ends_at)}</time></span><small>Philippine time · PHT</small></dd></div>
           <div><dt><School size={17} aria-hidden="true" />Department</dt><dd>{event.department}</dd></div>
+          {event.organization && <div><dt><School size={17} aria-hidden="true" />Organizer</dt><dd>{event.organization.name}</dd></div>}
           <div><dt><GraduationCap size={17} aria-hidden="true" />Audience</dt><dd>{event.course}<span>{yearLabel(event.target_year)}</span></dd></div>
         </dl>
         <section aria-label="Event description"><h3>About this event</h3><p className="event-description">{event.description}</p></section>

@@ -17,6 +17,7 @@ export function EventCard({ event, imageUrl, stage, children, onPreview }: { eve
         <div>
           <div className="event-card-heading"><p className="event-department">{event.department} · {event.course}</p><EventStatus status={stage ?? event.status} /></div>
           <h3>{event.title}</h3>
+          {event.organization && <p className="event-organizer">By {event.organization.name}</p>}
         </div>
         <p className="event-description">{event.description}</p>
         <div className="space-y-2 border-t border-border pt-4 text-sm">

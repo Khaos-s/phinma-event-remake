@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { EventRow, signedImageUrls } from "@/lib/events";
+import { EVENT_SELECT, EventRow, signedImageUrls } from "@/lib/events";
 import { createClient } from "@/lib/supabase/client";
 import { roleHome } from "@/lib/roles";
 
@@ -28,12 +28,12 @@ export default function AdminPage() {
   const [fetchError, setFetchError] = useState("");
 
   const loadEvents = useCallback(async () => {
-    const { data, error: loadError } = await client.from("events").select("*").order("created_at", { ascending: false });
+    const { data, error: loadError } = await client.from("events").select(EVENT_SELECT).order("created_at", { ascending: false });
     if (loadError) {
       setFetchError("The review queue could not be loaded. Please refresh the page.");
       return;
     }
-    const rows = (data ?? []) as EventRow[];
+    const rows = (data ?? []) as unknown as EventRow[];
     setFetchError("");
     setEvents(rows);
     setImageUrls(await signedImageUrls(client, rows));

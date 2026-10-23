@@ -11,21 +11,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { COURSE, DEPARTMENT, EventRow, IMAGE_BUCKET, philippineTimeToIso, signedImageUrls } from "@/lib/events";
+import { EVENT_SELECT, EventRow, IMAGE_BUCKET, philippineTimeToIso, signedImageUrls } from "@/lib/events";
+import { colleges } from "@/lib/academics";
+import { posterExtension } from "@/lib/posters";
 import { createClient } from "@/lib/supabase/client";
 import { roleHome } from "@/lib/roles";
-
-const imageExtensions: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 export default function OrganizerPage() {
   const client = useMemo(() => createClient(), []);
   const router = useRouter();
   const account = useAccount();
   const userId = account.user?.id;
+  const organization = account.organization;
+  const courses = colleges.find(college => college.name === organization?.department)?.courses ?? [];
+  const [posterPreview, setPosterPreview] = useState<{ file: File; url: string } | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -34,14 +33,16 @@ export default function OrganizerPage() {
   const [notice, setNotice] = useState("");
   const [fetchError, setFetchError] = useState("");
 
+  useEffect(() => () => { if (posterPreview) URL.revokeObjectURL(posterPreview.url); }, [posterPreview]);
+
   const loadEvents = useCallback(async () => {
     if (!userId) return;
-    const { data, error: loadError } = await client.from("events").select("*").eq("created_by", userId).order("created_at", { ascending: false });
+    const { data, error: loadError } = await client.from("events").select(EVENT_SELECT).eq("created_by", userId).order("created_at", { ascending: false });
     if (loadError) {
       setFetchError("Your submissions could not be loaded. Please refresh the page.");
       return;
     }
-    const rows = (data ?? []) as EventRow[];
+    const rows = (data ?? []) as unknown as EventRow[];
     setFetchError("");
     setEvents(rows);
     setImageUrls(await signedImageUrls(client, rows));
@@ -52,7 +53,7 @@ export default function OrganizerPage() {
     async function checkAccess() {
       if (account.loading || account.error) return;
       if (!account.user) { router.replace("/login"); return; }
-      if (account.role !== "cite_organizer") { router.replace(roleHome(account.role)); return; }
+      if (account.role !== "organizer") { router.replace(roleHome(account.role)); return; }
       await loadEvents();
       if (active) setLoading(false);
     }
@@ -62,13 +63,14 @@ export default function OrganizerPage() {
 
   async function submitEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!userId) return;
+    if (!userId || !organization) return;
     const form = event.currentTarget;
     const fields = new FormData(form);
     const image = fields.get("image");
     const startsAt = philippineTimeToIso(String(fields.get("starts_at") ?? ""));
     const endsAt = philippineTimeToIso(String(fields.get("ends_at") ?? ""));
     const year = String(fields.get("target_year") ?? "");
+    const course = String(fields.get("course") ?? "");
 
     setError("");
     setNotice("");
@@ -76,8 +78,12 @@ export default function OrganizerPage() {
       setError("Enter an event name and a description before submitting.");
       return;
     }
-    if (!(image instanceof File) || !image.size || !imageExtensions[image.type] || image.size > 5 * 1024 * 1024) {
+    if (!(image instanceof File) || !posterExtension(image)) {
       setError("Choose a JPG, PNG, or WebP image no larger than 5 MB.");
+      return;
+    }
+    if (!courses.some(item => item.code === course) || !["", "1", "2", "3", "4"].includes(year)) {
+      setError("Choose a valid course and year for your assigned department.");
       return;
     }
     if (!startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt)) {
@@ -86,7 +92,7 @@ export default function OrganizerPage() {
     }
 
     setBusy(true);
-    const path = `${userId}/${crypto.randomUUID()}.${imageExtensions[image.type]}`;
+    const path = `${userId}/${crypto.randomUUID()}.${posterExtension(image)}`;
     const { error: uploadError } = await client.storage.from(IMAGE_BUCKET).upload(path, image, { contentType: image.type });
     if (uploadError) {
       setError("The image could not be uploaded. Please try again.");
@@ -96,13 +102,14 @@ export default function OrganizerPage() {
 
     const { error: insertError } = await client.from("events").insert({
       created_by: userId,
+      organization_id: organization.id,
       title: String(fields.get("title") ?? "").trim(),
       description: String(fields.get("description") ?? "").trim(),
       image_path: path,
       starts_at: startsAt,
       ends_at: endsAt,
-      department: DEPARTMENT,
-      course: COURSE,
+      department: organization.department,
+      course,
       target_year: year ? Number(year) : null,
     });
     if (insertError) {
@@ -110,6 +117,7 @@ export default function OrganizerPage() {
       setError("The event could not be submitted. Check the fields and try again.");
     } else {
       form.reset();
+      setPosterPreview(null);
       setNotice("Submitted for administrator review. It will appear publicly after approval.");
       await loadEvents();
     }
@@ -117,11 +125,11 @@ export default function OrganizerPage() {
   }
 
   if (account.error) return <WorkspaceShell title="Create an event"><p className="form-error" role="alert">{account.error}</p></WorkspaceShell>;
-  if (loading || account.loading || account.role !== "cite_organizer") return <WorkspaceShell title="Create an event"><p className="loading-panel" role="status">Checking organizer access…</p></WorkspaceShell>;
+  if (loading || account.loading || account.role !== "organizer" || !organization) return <WorkspaceShell title="Create an event"><p className="loading-panel" role="status">Checking organizer access…</p></WorkspaceShell>;
 
   return (
     <WorkspaceShell title="Create an event">
-        <div className="page-heading"><div><h1>Create an event</h1><p>A new idea. A shared experience. Start with the details.</p></div><span className="role-badge"><ShieldCheck size={14} aria-hidden="true" />CITE Council</span></div>
+        <div className="page-heading"><div><h1>Create an event</h1><p>A new idea. A shared experience. Start with the details.</p></div><span className="role-badge"><ShieldCheck size={14} aria-hidden="true" />{organization.name}</span></div>
         <div className="summary-strip"><div><span>Pending review</span><strong>{fetchError ? "—" : events.filter(item => item.status === "pending").length}</strong></div><div><span>Published</span><strong>{fetchError ? "—" : events.filter(item => item.status === "approved").length}</strong></div><div><span>Rejected</span><strong>{fetchError ? "—" : events.filter(item => item.status === "rejected").length}</strong></div></div>
         <div className="organizer-layout">
           <Card className="event-form-card">
@@ -130,15 +138,22 @@ export default function OrganizerPage() {
               <form onSubmit={submitEvent} className="space-y-5">
                 <div className="space-y-2"><Label htmlFor="title">Event name</Label><Input id="title" name="title" maxLength={200} required placeholder="Give your event a clear name" /></div>
                 <div className="space-y-2"><Label htmlFor="description">Description</Label><Textarea id="description" name="description" rows={5} maxLength={5000} required placeholder="What will happen at this event?" /></div>
-                <div className="poster-field"><Label htmlFor="image"><ImagePlus size={18} aria-hidden="true" />Event picture or poster</Label><p>A clear image helps your event stand out on the board.</p><Input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" required /><p className="field-hint">JPG, PNG, or WebP, up to 5 MB.</p></div>
+                <div className="poster-field"><Label htmlFor="image"><ImagePlus size={18} aria-hidden="true" />Event picture or poster</Label><p>A clear image helps your event stand out on the board.</p><Input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" required onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file && !posterExtension(file)) { event.target.value = ""; setPosterPreview(null); setError("Choose a JPG, PNG, or WebP image no larger than 5 MB."); return; }
+                  setPosterPreview(file ? { file, url: URL.createObjectURL(file) } : null); setError("");
+                }} /><p className="field-hint">JPG, PNG, or WebP, up to 5 MB.</p>{posterPreview && <figure className="poster-local-preview">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={posterPreview.url} alt="Selected event poster preview" /><figcaption>{posterPreview.file.name} · {(posterPreview.file.size / 1024).toFixed(0)} KB<span>Preview only. The image uploads when you submit.</span></figcaption>
+                </figure>}</div>
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2"><Label htmlFor="starts_at">Start date and time</Label><Input id="starts_at" name="starts_at" type="datetime-local" required /></div>
                   <div className="space-y-2"><Label htmlFor="ends_at">End date and time</Label><Input id="ends_at" name="ends_at" type="datetime-local" required /></div>
                 </div>
                 <p className="text-xs text-muted-foreground">Enter both times in Philippine time (PHT).</p>
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2"><Label htmlFor="department">Department</Label><Input id="department" value={DEPARTMENT} readOnly /></div>
-                  <div className="space-y-2"><Label htmlFor="course">Course</Label><Input id="course" value="BS Information Technology (BSIT)" readOnly /></div>
+                  <div className="space-y-2"><Label htmlFor="department">Department</Label><Input id="department" value={organization.department} readOnly /></div>
+                  <div className="space-y-2"><Label htmlFor="course">Course</Label><select key={organization.id} id="course" name="course" required defaultValue={courses[0]?.code ?? ""} className="course-select">{courses.map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></div>
                 </div>
                 <div className="space-y-2"><Label htmlFor="target_year">For which year?</Label><select id="target_year" name="target_year" defaultValue="" className="flex h-10 w-full rounded-[var(--radius)] border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="">All college years</option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
                 {error && <p role="alert" className="form-error">{error}</p>}

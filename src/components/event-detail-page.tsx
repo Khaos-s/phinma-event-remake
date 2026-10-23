@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { EventDetails } from "@/components/event-details";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { EventRow, signedImageUrls } from "@/lib/events";
+import { EVENT_SELECT, EventRow, signedImageUrls } from "@/lib/events";
 import { createClient } from "@/lib/supabase/client";
 
 export function EventDetailPage({ id }: { id: string }) {
@@ -21,11 +21,11 @@ export function EventDetailPage({ id }: { id: string }) {
     let active = true;
     async function load() {
       if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) { setLoading(false); return; }
-      const { data, error: loadError } = await client.from("events").select("*").eq("id", id).eq("status", "approved").maybeSingle();
+      const { data, error: loadError } = await client.from("events").select(EVENT_SELECT).eq("id", id).eq("status", "approved").maybeSingle();
       if (!active) return;
       if (loadError) setError("This event could not be loaded. Please refresh to try again.");
       else {
-        const row = data as EventRow | null;
+        const row = data as unknown as EventRow | null;
         const urls = row ? await signedImageUrls(client, [row]) : {};
         if (!active) return;
         setEvent(row); setImageUrl(urls[id]); setError("");

@@ -4,6 +4,8 @@ import { resolveRole, roleHome } from "./roles.ts";
 
 test("only stored organizer and administrator grants open their workspaces", () => {
   assert.equal(roleHome(resolveRole("cite_organizer")), "/organizer");
+  assert.equal(resolveRole("cite_organizer"), "organizer");
+  assert.equal(roleHome(resolveRole("organizer")), "/organizer");
   assert.equal(roleHome(resolveRole("event_admin")), "/admin");
 });
 

@@ -1,5 +1,7 @@
 # CITE Council event pilot — decisions
 
+Historical record: the CITE-only scope below is superseded by `SPEC.md` and `DATA_MODEL.md`. Trusted council, faculty, and staff organizers can now submit for their assigned organization and department. Central administrator approval remains required. Editing/resubmission remains deferred; organizers submit a new proposal instead.
+
 These are product-owner decisions from 2026-10-21. They describe the first release; they are not claims about an existing PHINMA UI policy. The official college and program names are recorded in [PHINMA_REFERENCE.md](PHINMA_REFERENCE.md).
 
 ## People and approval

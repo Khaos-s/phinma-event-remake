@@ -1,12 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Organization } from "./roles.ts";
 
-export const DEPARTMENT = "College of Information Technology";
-export const COURSE = "BSIT";
 export const IMAGE_BUCKET = "event-images";
+export const EVENT_SELECT = "*,organization:organizations(id,name,department)";
 
 export type EventRow = {
   id: string;
   created_by: string;
+  organization_id: string;
+  organization: Organization;
   title: string;
   description: string;
   image_path: string;
@@ -22,13 +24,8 @@ export type EventRow = {
 
 export type EventStage = "upcoming" | "ongoing" | "past";
 
-export function eventOrganizer(event: Pick<EventRow, "department" | "course">) {
-  // shortcut: the pilot's CITE/BSIT submissions belong to CITE Council; store organizer identity before adding other publishers.
-  return event.department === DEPARTMENT && event.course === COURSE ? "CITE Council" : null;
-}
-
 export function matchesEventFilters(
-  event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course" | "department">,
+  event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course" | "department" | "organization_id">,
   filters: { stage: EventStage | "all"; year: string; query: string; department?: string; course?: string; organizer?: string },
   now: number,
 ) {
@@ -36,7 +33,7 @@ export function matchesEventFilters(
     && (filters.year === "all" || event.target_year === null || event.target_year === Number(filters.year))
     && (!filters.department || filters.department === "all" || event.department === filters.department)
     && (!filters.course || filters.course === "all" || event.course === filters.course)
-    && (!filters.organizer || filters.organizer === "all" || eventOrganizer(event) === filters.organizer)
+    && (!filters.organizer || filters.organizer === "all" || event.organization_id === filters.organizer)
     && `${event.title} ${event.description} ${event.course} ${event.department}`.toLowerCase().includes(filters.query.trim().toLowerCase());
 }
 
