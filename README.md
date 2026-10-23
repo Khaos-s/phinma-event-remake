@@ -14,7 +14,7 @@ npm run dev
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` using the project's Supabase URL and publishable key. The same two variables must be configured in Vercel. Never put a Supabase secret or service role key in this app.
 
-The four numbered database migrations in `supabase/sql/` are applied in order. All registered users share `/login`. Accounts with trusted grants for `organizer` (including legacy `cite_organizer`) or `event_admin` open their own workspaces; other accounts receive member access at `/account`. The website cannot grant roles. See `docs/ORGANIZER_SETUP.md` for publisher onboarding, `docs/SPEC.md` for the workflow, and `docs/IMAGE_SOURCES.md` for image credits.
+The six numbered database migrations in `supabase/sql/` are applied in order. All registered users share `/login`. Accounts with trusted grants for `organizer` (including legacy `cite_organizer`) or `event_admin` open their own workspaces; other accounts receive member access at `/account`. The website cannot grant roles. See `docs/ORGANIZER_SETUP.md` for publisher onboarding, `docs/SPEC.md` for the workflow, and `docs/IMAGE_SOURCES.md` for image credits.
 
 ## Checks
 
@@ -26,6 +26,6 @@ npm test
 
 The university department/course catalog is sourced in `docs/ACADEMIC_REFERENCE.md`. The original CITE test assignment is preserved. The organizer form includes a local poster preview; phone filters collapse; full-detail posters can be zoomed. Student rosters and email notifications are later work.
 
-Database RLS tests are in `supabase/tests/organization_access.sql`; all test identities/events are rolled back. See `docs/VERIFICATION.md` for the verification boundaries.
+Database RLS and security tests are in `supabase/tests/organization_access.sql` and `supabase/tests/security_boundaries.sql`; all test identities/events/Storage metadata are rolled back. Public queries use announcement-only column grants; complete workspace records use a scoped RPC. See `docs/VERIFICATION.md` for checks and `docs/AUDIT.md` for findings, repairs, and unresolved hosted Auth settings.
 
 Start with `docs/CONTEXT.md` for the code map, `docs/DATA_MODEL.md` for permissions, and `docs/METHODOLOGY.md` for the event workflow. `docs/DESIGN.md` explains how the supplied visual reference was adapted. Reusable agent/context/data/workflow templates and a general engineering guide are in `docs/reusable/`; they are references for future projects, not extra application requirements.

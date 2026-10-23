@@ -3,6 +3,7 @@ import type { Organization } from "./roles.ts";
 
 export const IMAGE_BUCKET = "event-images";
 export const EVENT_SELECT = "*,organization:organizations(id,name,department)";
+export const PUBLIC_EVENT_SELECT = "id,organization_id,title,description,image_path,starts_at,ends_at,department,course,target_year,status,organization:organizations(id,name,department)";
 
 export type EventRow = {
   id: string;
@@ -23,6 +24,7 @@ export type EventRow = {
 };
 
 export type EventStage = "upcoming" | "ongoing" | "past";
+export type PublicEvent = Omit<EventRow, "created_by" | "created_at" | "rejection_reason">;
 
 export function matchesEventFilters(
   event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course" | "department" | "organization_id">,
@@ -53,18 +55,20 @@ export function philippineTimeToIso(value: string): string | null {
 }
 
 export function formatPhilippineTime(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Invalid schedule";
   return new Intl.DateTimeFormat("en-PH", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "Asia/Manila",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function yearLabel(year: number | null) {
   return year === null ? "All college years" : `${year}${year === 1 ? "st" : year === 2 ? "nd" : year === 3 ? "rd" : "th"} Year`;
 }
 
-export async function signedImageUrls(client: SupabaseClient, events: EventRow[]) {
+export async function signedImageUrls(client: SupabaseClient, events: Pick<EventRow, "id" | "image_path">[]) {
   const urls = await Promise.all(events.map(async (event) => {
     const { data } = await client.storage.from(IMAGE_BUCKET).createSignedUrl(event.image_path, 3600);
     return [event.id, data?.signedUrl] as const;

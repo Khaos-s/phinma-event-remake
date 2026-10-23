@@ -4,10 +4,11 @@ Checked 2026-10-23. Scope: trusted organization/department access, administrator
 
 ## Executed checks
 
-- `npm test`: 7 passing tests for role destinations/compatibility, event time boundaries and filters, and poster type/size validation.
+- `npm test`: 10 passing tests for role destinations/compatibility, time boundaries/invalid-date rendering, filters, poster limits, public field selection, and security headers.
 - `npm run lint`: passed. Generated local QA artifacts in `.taste-skill/` are excluded alongside the existing generated build exclusions.
 - `npm run build`: clean production build and TypeScript checks passed. A stale local Turbopack cache initially caused its CSS worker to exit; archiving the generated cache resolved this without a runtime/configuration change.
 - Hosted `supabase/tests/organization_access.sql`: passed. Transaction-scoped council/staff identities verify trusted scope derivation, cross-organization/department denial, valid program pairs, private reads, metadata privilege denial, administrator-only review/publication, repeated decision denial, role revocation, and the legacy Storage role-helper bridge. Fixtures roll back.
+- Hosted `supabase/tests/security_boundaries.sql`: passed for malformed input, private columns, scoped workspace reads, and Storage metadata policies. Organizer refresh/error cleanup and admin poster zoom also passed local browser assertions. See `AUDIT.md` for detailed evidence and limits.
 - Hosted checks after rollback: one real organization, 16 academic programs, zero events and zero test Auth users. Anonymous callers cannot execute review or role-helper RPCs.
 - Real anonymous browser reads of the approved event/organization join succeed and show an honest empty state.
 - Local browser fixtures at desktop and 375px phone widths pass for council/staff forms, valid course choices, local preview/replacement/object-URL cleanup, invalid time rejection, submission identity, failed-insert cleanup, shared role routing, and failed membership checks.
@@ -20,7 +21,8 @@ Browser fixtures intercept hosted writes and never create public sample events. 
 - Actual password sign-in and a real Supabase Storage upload followed by administrator approval still require an owner-operated workflow check. No production passwords were used or new real publishers invented.
 - Only the existing CITE Council assignment is onboarded. Other councils/faculty/staff require approved organization names, department assignments, and existing Auth accounts; see `ORGANIZER_SETUP.md`.
 - One organization per account and one course per event are supported. Specific program year structures remain unconfirmed beyond the provisional 1st–4th Year options.
-- Supabase still flags the three authenticated security-definer helpers/RPCs. These are deliberate: empty search paths, trusted role checks, authenticated-only execution, and no browser UPDATE grant. See the [Supabase advisory](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+- Supabase still flags four authenticated security-definer helpers/RPCs, including the scoped workspace reader. These are deliberate: empty search paths, trusted role/ownership checks, authenticated-only execution, and no browser UPDATE grant. See the [Supabase advisory](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
 - Existing Supabase Auth leaked-password protection is disabled; it was not changed in this task. See [Supabase password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+- API signup is enabled despite administrator-provisioned UI scope. The dashboard browser permission was denied, so this remains an owner setting action. Development-only dependency advisory, pagination, and operational checks are documented in `AUDIT.md`.
 
 Deployment verification is recorded in the delivery message and Vercel's matching Git commit deployment.

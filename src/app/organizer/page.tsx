@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ImagePlus, Send, ShieldCheck } from "lucide-react";
+import { Check, ImagePlus, RefreshCw, Send, ShieldCheck } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { EventCard } from "@/components/event-card";
 import { WorkspaceShell } from "@/components/workspace-shell";
@@ -32,33 +32,42 @@ export default function OrganizerPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [fetchError, setFetchError] = useState("");
+  const loadRevision = useRef(0);
 
   useEffect(() => () => { if (posterPreview) URL.revokeObjectURL(posterPreview.url); }, [posterPreview]);
 
   const loadEvents = useCallback(async () => {
     if (!userId) return;
-    const { data, error: loadError } = await client.from("events").select(EVENT_SELECT).eq("created_by", userId).order("created_at", { ascending: false });
+    const revision = ++loadRevision.current;
+    const { data, error: loadError } = await client.rpc("workspace_events").select(EVENT_SELECT).eq("created_by", userId).order("created_at", { ascending: false });
+    if (revision !== loadRevision.current) return;
     if (loadError) {
       setFetchError("Your submissions could not be loaded. Please refresh the page.");
       return;
     }
     const rows = (data ?? []) as unknown as EventRow[];
+    const urls = await signedImageUrls(client, rows);
+    if (revision !== loadRevision.current) return;
     setFetchError("");
     setEvents(rows);
-    setImageUrls(await signedImageUrls(client, rows));
+    setImageUrls(urls);
   }, [client, userId]);
 
   useEffect(() => {
     let active = true;
+    let refreshTimer: ReturnType<typeof setInterval> | undefined;
     async function checkAccess() {
       if (account.loading || account.error) return;
       if (!account.user) { router.replace("/login"); return; }
       if (account.role !== "organizer") { router.replace(roleHome(account.role)); return; }
       await loadEvents();
-      if (active) setLoading(false);
+      if (active) {
+        setLoading(false);
+        refreshTimer = setInterval(() => void loadEvents(), 60_000);
+      }
     }
     void checkAccess();
-    return () => { active = false; };
+    return () => { active = false; clearInterval(refreshTimer); };
   }, [account, loadEvents, router]);
 
   async function submitEvent(event: FormEvent<HTMLFormElement>) {
@@ -113,8 +122,10 @@ export default function OrganizerPage() {
       target_year: year ? Number(year) : null,
     });
     if (insertError) {
-      await client.storage.from(IMAGE_BUCKET).remove([path]);
-      setError("The event could not be submitted. Check the fields and try again.");
+      const { error: cleanupError } = await client.storage.from(IMAGE_BUCKET).remove([path]);
+      setError(cleanupError
+        ? "The event could not be submitted, and its uploaded poster could not be removed. Contact the administrator before trying again."
+        : "The event could not be submitted. Check the fields and try again.");
     } else {
       form.reset();
       setPosterPreview(null);
@@ -166,6 +177,7 @@ export default function OrganizerPage() {
           <section aria-labelledby="submissions-title" id="submissions" className="submission-rail">
             <div className="review-guide"><div className="panel-section-heading"><h2>From idea to event</h2><ShieldCheck size={19} aria-hidden="true" /></div><ul className="check-list"><li><Check size={16} aria-hidden="true" />Add your poster, schedule, and audience.</li><li><Check size={16} aria-hidden="true" />Submit once for administrator review.</li><li><Check size={16} aria-hidden="true" />Approval adds it to the public calendar.</li></ul></div>
             <div className="panel-section-heading"><h2 id="submissions-title">My submissions</h2><span>{fetchError ? "Unavailable" : events.length}</span></div>
+            <Button type="button" variant="outline" onClick={() => void loadEvents()}><RefreshCw size={15} aria-hidden="true" />Refresh submissions</Button>
             {fetchError ? <p role="alert" className="form-error">{fetchError}</p> : events.length ? events.map((item) => <EventCard key={item.id} event={item} imageUrl={imageUrls[item.id]} />) : <Card><CardContent className="empty-state"><Send size={27} strokeWidth={1.5} aria-hidden="true" /><h3>Your first event starts here</h3><p>Submitted events appear here with their review status.</p></CardContent></Card>}
           </section>
         </div>

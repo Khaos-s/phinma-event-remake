@@ -1,9 +1,9 @@
 import { CalendarDays, GraduationCap, School } from "lucide-react";
 import { EventStatus } from "@/components/event-status";
 import { PosterViewer } from "@/components/poster-viewer";
-import { EventRow, eventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
+import { PublicEvent, eventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
 
-export function EventDetails({ event, imageUrl, now, preview = false }: { event: EventRow; imageUrl?: string; now: number; preview?: boolean }) {
+export function EventDetails({ event, imageUrl, now, preview = false }: { event: PublicEvent; imageUrl?: string; now: number; preview?: boolean }) {
   return (
     <article className={`event-details ${preview ? "is-preview" : ""}`}>
       <div className="event-detail-poster">{imageUrl && !preview ? <PosterViewer imageUrl={imageUrl} title={event.title} /> : imageUrl ? (

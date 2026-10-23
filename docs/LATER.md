@@ -10,4 +10,5 @@ stays small enough to actually ship by Session 3.
 - Editing already published events with a fresh review of proposed changes.
 - Separate council logo and event poster assets if one event image is insufficient.
 - Email notifications for new proposals and review outcomes; the first release uses the in-app review queue and status.
+- Pagination/server filtering for large event histories and directories before exceeding hosted query limits; see `AUDIT.md` for current scale and operational boundaries.
 

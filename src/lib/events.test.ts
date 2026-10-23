@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { eventStage, matchesEventFilters, philippineTimeToIso } from "./events.ts";
+import { eventStage, formatPhilippineTime, matchesEventFilters, philippineTimeToIso } from "./events.ts";
 
 const schedule = {
   starts_at: "2026-10-22T01:00:00.000Z",
   ends_at: "2026-10-22T03:00:00.000Z",
 };
+
+test("invalid database schedules cannot crash event rendering", () => {
+  for (const value of ["infinity", "-infinity", "294276-01-01T00:00:00Z", "invalid"]) {
+    assert.equal(formatPhilippineTime(value), "Invalid schedule");
+  }
+  assert.match(formatPhilippineTime(schedule.starts_at), /2026/);
+});
 
 test("event stages include exact start and exclude exact end", () => {
   assert.equal(eventStage(schedule, Date.parse("2026-10-22T00:59:59Z")), "upcoming");

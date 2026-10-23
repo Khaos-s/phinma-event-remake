@@ -10,7 +10,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 import { colleges } from "@/lib/academics";
-import { EVENT_SELECT, EventRow, EventStage, eventStage, matchesEventFilters, signedImageUrls } from "@/lib/events";
+import { PUBLIC_EVENT_SELECT, PublicEvent, EventStage, eventStage, matchesEventFilters, signedImageUrls } from "@/lib/events";
 import type { Organization } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
@@ -21,7 +21,7 @@ const timeFilters: { value: EventStage | "all"; label: string }[] = [
 
 export function EventBrowser({ home = false }: { home?: boolean }) {
   const client = useMemo(() => createClient(), []);
-  const [events, setEvents] = useState<EventRow[]>([]);
+  const [events, setEvents] = useState<PublicEvent[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<EventStage | "all">("all");
   const [search, setSearch] = useState("");
@@ -31,7 +31,7 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
   const [organizer, setOrganizer] = useState("all");
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<EventRow | null>(null);
+  const [selected, setSelected] = useState<PublicEvent | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [now, setNow] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
@@ -41,13 +41,13 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
     let active = true;
     async function load() {
       const [eventResult, organizationResult] = await Promise.all([
-        client.from("events").select(EVENT_SELECT).eq("status", "approved").order("starts_at", { ascending: true }),
+        client.from("events").select(PUBLIC_EVENT_SELECT).eq("status", "approved").order("starts_at", { ascending: true }),
         client.from("organizations").select("id,name,department").order("name"),
       ]);
       if (!active) return;
       if (eventResult.error || organizationResult.error) setError("Events could not be loaded. Please refresh the page to try again.");
       else {
-        const rows = (eventResult.data ?? []) as unknown as EventRow[];
+        const rows = (eventResult.data ?? []) as unknown as PublicEvent[];
         const urls = await signedImageUrls(client, rows);
         if (!active) return;
         setEvents(rows);

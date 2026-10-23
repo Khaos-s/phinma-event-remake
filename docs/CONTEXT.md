@@ -32,6 +32,7 @@ Everyone uses `/login`. Roles and organization membership are trusted assignment
 - `src/lib/academics.ts`: sourced college/program catalog; provenance and naming notes in `docs/ACADEMIC_REFERENCE.md`.
 - `src/components/`: session provider, public header/footer, workspace shell, event cards/status, and UI primitives.
 - `src/lib/events.ts`: shared event types and organization relation selection, time conversion, audience/search filters, and signed image URL loading.
+- Public event reads select announcement fields explicitly; organizer/admin full records come from the role-checked `workspace_events()` RPC. Column grants protect private creator/reviewer metadata independently of UI selection.
 - `src/lib/posters.ts`: shared poster MIME/size validation. Pre-submit previews use local object URLs with cleanup; full public details support a poster zoom dialog.
 - `src/lib/roles.ts`: safe role resolution and landing destinations. Database authorization is independent of this UI helper.
 - `supabase/sql/`: applied numbered schema and storage policy changes. Add a new migration for changes.
@@ -44,6 +45,8 @@ Use PHINMA green and gold, neutral light surfaces, clear text, and real campus i
 ## Current limitations
 
 The university's existing approval process has not been observed in person. Real password sign-in and Storage upload still need an owner-operated check; database role/publication tests use transaction-scoped identities and roll back all fixtures. One organization per organizer account and one course per event are supported. Multi-organization memberships, email notifications, public registration, event editing/resubmission, and enrollment records remain later work. See `LATER.md` before expanding scope.
+
+Read `AUDIT.md` for the 2026-10-23 end-to-end audit. Hosted API signup remains enabled and leaked-password protection disabled; Chrome denied dashboard access, and the connector cannot update Auth settings. Lists are not paginated yet. Do not claim those gaps or real password/upload verification are complete.
 
 ## Reuse
 

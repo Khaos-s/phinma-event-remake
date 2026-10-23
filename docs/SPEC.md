@@ -34,6 +34,7 @@ The primary user is an authorized event organizer assigned to a trusted organiza
 - Member account page: verified account identity, current access, and event browsing.
 - Organizer page: event submission form and own submissions with review status and rejection reason.
 - Administrator page: pending count, full submission details, and Approve/Reject actions.
+- Organizer submission status and signed posters refresh manually and every minute; administrators can expand posters during review. Public announcement fields and private workspace metadata use separate database access boundaries.
 
 All authenticated pages share a role-aware sidebar workspace and a compact mobile navigation. Public filters use the official college-programs listing documented in `ACADEMIC_REFERENCE.md`. Department changes reset the course filter; CITE Council appears as an organizer option, not a default scope label. The shared login uses the same PHINMA identity. The supplied design board is a visual reference only; scholarship/duty records and water-reporting rules are not included. See `docs/DESIGN.md` for the mapping.
 

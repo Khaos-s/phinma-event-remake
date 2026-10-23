@@ -9,11 +9,15 @@
 5. Approval changes pending to approved in one database operation. The event is then eligible for public reads, including its image.
 6. Rejection changes pending to rejected and requires a reason visible to the organizer. A rejected organizer can submit a new event; editing and resubmission are not implemented.
 
+The organizer can refresh submissions manually; the page also reloads status, notes, and signed posters every 60 seconds. A failed insert attempts private poster cleanup and reports a cleanup failure explicitly. Administrator review supports full-size poster fit/zoom.
+
 Only the administrator can make the review transition. There is one approval stage. The dashboard status label “Published” maps to the stored `approved` value; it is not a separate workflow state.
 
 ## Time and audience
 
 Inputs are Philippine local time. `philippineTimeToIso` validates the calendar date, interprets it as UTC+08:00, and sends ISO timestamps. PostgreSQL stores `timestamptz`; display uses `Asia/Manila` regardless of the visitor's device timezone. End must be strictly later than start.
+
+Database checks reject infinite/out-of-range schedules and unbounded raw text, including requests that bypass the form. Supported timestamps are years 0001–9999; malformed values render an invalid-schedule label rather than crashing the queue.
 
 | Public category | Calculation |
 | --- | --- |

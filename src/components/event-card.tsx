@@ -1,13 +1,14 @@
 import { ArrowUpRight, CalendarDays, GraduationCap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventStatus } from "@/components/event-status";
-import { EventRow, EventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
+import { PosterViewer } from "@/components/poster-viewer";
+import { PublicEvent, EventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
 
-export function EventCard({ event, imageUrl, stage, children, onPreview }: { event: EventRow; imageUrl?: string; stage?: EventStage; children?: React.ReactNode; onPreview?: () => void }) {
+export function EventCard({ event, imageUrl, stage, children, onPreview, zoomPoster = false }: { event: PublicEvent & { rejection_reason?: string | null }; imageUrl?: string; stage?: EventStage; children?: React.ReactNode; onPreview?: () => void; zoomPoster?: boolean }) {
   return (
     <Card className={`event-card overflow-hidden ${onPreview ? "event-card-interactive" : ""}`} role="article">
-      <div className="event-image">
-      {imageUrl ? (
+      <div className={zoomPoster ? "event-detail-poster" : "event-image"}>
+      {imageUrl && zoomPoster ? <PosterViewer imageUrl={imageUrl} title={event.title} /> : imageUrl ? (
         // Signed Storage URLs expire; native loading avoids caching them in Next's image optimizer.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imageUrl} alt={`Poster for ${event.title}`} loading="lazy" />

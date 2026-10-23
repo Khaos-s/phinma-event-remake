@@ -1,6 +1,6 @@
 # PHINMA UI Event: data and access
 
-The authoritative migrations in `supabase/sql/` are applied in order: `001_cite_events.sql`, `002_cleanup_unsubmitted_images.sql`, `003_organization_access.sql`, and `004_restrict_anonymous_review_rpc.sql`. All four are applied to hosted Supabase. Add new numbered migrations; do not rewrite applied SQL.
+The six numbered migrations in `supabase/sql/` are applied in order, including `005_event_input_boundaries.sql` and `006_private_event_metadata.sql`. All six are applied to hosted Supabase. Add new numbered migrations; do not rewrite applied SQL.
 
 ## Catalog and publisher identity
 
@@ -13,6 +13,8 @@ Browser roles have SELECT only on the two public catalog tables and no mutation 
 ## Events
 
 Events retain generated UUID, required Auth `created_by`, trimmed title (1–200), description (1–5,000), own-prefix `image_path`, required `timestamptz` start/end (end strictly later), course, department, target year (null for all, otherwise 1–4), and creation timestamp.
+
+Raw character limits also reject oversized trailing whitespace. Event times must be finite and within years 0001–9999. Browser INSERT privileges cover only submission fields; IDs, creation timestamps, and review fields are database-owned.
 
 `organization_id` is required. A security-invoker trigger in the private schema derives it from the caller's own trusted assignment and rejects a conflicting supplied ID. Foreign keys enforce both `(course, department)` against the academic catalog and `(organization_id, department)` against the organization. An organizer therefore cannot submit for another department or invent a program. The course remains one program per event.
 
@@ -31,14 +33,16 @@ Review status is `pending`, `approved`, or `rejected`. Pending requires null rev
 
 `has_role(text)` checks the current database assignment. Its organizer spellings are compatible so existing CITE accounts and managed Storage policies continue working. `approve_event(uuid)` and `reject_event(uuid,text)` verify `event_admin`, atomically transition only a pending row, and record the reviewer. Concurrent/repeated decisions fail. These deliberate security-definer functions have an empty search path and signed-in EXECUTE grants; `PUBLIC` and `anon` EXECUTE are explicitly revoked by migration 004. Clients have no direct UPDATE grant.
 
-Public directory/detail queries explicitly filter `status = approved`, including for signed-in administrators. Detail also filters UUID. All event readers use `EVENT_SELECT` to join the organization's public label. Filters use actual organization UUIDs. Organizer history additionally filters `created_by`.
+Direct SELECT grants expose only announcement columns, including under authenticated sessions. Account/review metadata cannot be selected directly. Public directory/detail queries use `PUBLIC_EVENT_SELECT` and explicitly filter `status = approved`, including for signed-in administrators; detail also filters UUID. Workspace queries call `workspace_events()` with `EVENT_SELECT`. This authenticated-only security-definer RPC checks the current assignment and returns full rows only for the organizer's own submissions or the administrator. Members receive no rows and anonymous execution is revoked. All readers join the organization's public label; filters use actual organization UUIDs.
 
 ## Images
 
 `event-images` stays private, accepts JPG/PNG/WebP up to 5 MB, and restricts uploads to the organizer's own UUID path. Owners/admins can read review images; public image reads require a linked approved event. The platform-owned Storage policy definitions retain their original names and call the compatible role helper. They preserve owner/privacy rules for generic organizers.
 
-Signed URLs expire after an hour and public views refresh them. Local pre-submit previews use object URLs and release them on replacement/reset/unmount. Insert failure triggers attempted removal of the unreferenced own image; migration 002 permits that cleanup. Cleanup failure can leave a private orphan and must not be reported as successful submission. Poster zoom uses the signed original image, with fit/actual-size display and scrolling.
+Signed URLs expire after an hour; public/admin views and organizer history refresh them. Local pre-submit previews use object URLs and release them on replacement/reset/unmount. Insert failure triggers attempted removal of the unreferenced own image; migration 002 permits that cleanup. A cleanup failure is reported explicitly and can leave a private orphan. Poster zoom uses the signed original image, with fit/actual-size display and scrolling, including during administrator review. Public poster paths contain the uploader's pseudonymous UUID; they are not anonymized. An issued signed URL remains usable until expiry even if a role is revoked.
 
 ## Verification
 
 `supabase/tests/organization_access.sql` tests scoped council/staff submission, forged scope rejection, private reads, member/anonymous denial, admin publication/rejection, repeated decisions, and revocation inside a rolled-back transaction. It creates no persistent users/events. Browser fixtures test UI separately and do not prove password login or actual Storage transfer. See `VERIFICATION.md` for the latest boundaries and security advisory notes.
+
+`supabase/tests/security_boundaries.sql` additionally covers invalid dates/text, protected timestamps/columns, workspace scope, and Storage metadata ownership/privacy/publication. Direct SQL Storage deletion is blocked by the platform and is not used as a substitute for Storage API transfer tests. See `AUDIT.md` for unresolved hosted Auth settings and broader audit evidence.

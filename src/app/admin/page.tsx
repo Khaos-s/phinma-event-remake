@@ -28,7 +28,7 @@ export default function AdminPage() {
   const [fetchError, setFetchError] = useState("");
 
   const loadEvents = useCallback(async () => {
-    const { data, error: loadError } = await client.from("events").select(EVENT_SELECT).order("created_at", { ascending: false });
+    const { data, error: loadError } = await client.rpc("workspace_events").select(EVENT_SELECT).order("created_at", { ascending: false });
     if (loadError) {
       setFetchError("The review queue could not be loaded. Please refresh the page.");
       return;
@@ -98,7 +98,7 @@ export default function AdminPage() {
         <div className="admin-layout"><section aria-labelledby="pending-title">
           <div className="panel-section-heading"><h2 id="pending-title">Waiting for review</h2><span className="status-badge status-pending">{fetchError ? "Unavailable" : `${pending.length} pending`}</span></div>
           {pending.length ? <div className="admin-event-list">{pending.map((item) => (
-            <EventCard key={item.id} event={item} imageUrl={imageUrls[item.id]}>
+            <EventCard key={item.id} event={item} imageUrl={imageUrls[item.id]} zoomPoster>
               <div className="space-y-4 border-t border-border pt-4">
                 <div className="space-y-2"><Label htmlFor={`reason-${item.id}`}>Reason if rejecting</Label><Textarea id={`reason-${item.id}`} value={reasons[item.id] ?? ""} maxLength={1000} rows={3} onChange={(event) => setReasons((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="Tell the organizer what needs to change" /></div>
                 <div className="flex flex-wrap gap-2"><Button disabled={Boolean(busyId)} onClick={() => void review(item.id, "approve")}>{busyId === item.id ? "Reviewing…" : "Approve and publish"}</Button><Button disabled={Boolean(busyId)} variant="outline" onClick={() => void review(item.id, "reject")}>Reject</Button></div>
@@ -107,7 +107,7 @@ export default function AdminPage() {
           ))}</div> : <Card><CardContent className="empty-state"><ClipboardCheck size={30} strokeWidth={1.5} aria-hidden="true" /><h3>{fetchError ? "Queue unavailable" : "You’re all caught up"}</h3><p>{fetchError ? "Use Refresh queue to try loading the submissions again." : "There are no events waiting for your review. This queue checks for new submissions every 30 seconds."}</p></CardContent></Card>}
         </section><aside className="review-guide"><div className="panel-section-heading"><h2>Before you publish</h2><ShieldCheck size={19} aria-hidden="true" /></div><p>Every approval appears on the public event board immediately.</p><ul className="check-list"><li><Check size={16} aria-hidden="true" />Check the event name and description.</li><li><Check size={16} aria-hidden="true" />Review the poster and schedule.</li><li><Check size={16} aria-hidden="true" />Confirm the course and target year.</li></ul><div className="info-note">Something needs a change? Reject the submission with a clear reason so the organizer knows what to update.</div></aside></div>
 
-        <section aria-labelledby="reviewed-title" id="reviewed"><div className="panel-section-heading"><h2 id="reviewed-title">Reviewed events</h2><span>{fetchError ? "Unavailable" : `${reviewed.length} events`}</span></div>{reviewed.length ? <div className="event-grid">{reviewed.map((item) => <EventCard key={item.id} event={item} imageUrl={imageUrls[item.id]} />)}</div> : <Card><CardContent className="empty-state compact-empty"><p>{fetchError ? "Reviewed events could not be loaded." : "Approved and rejected submissions will be recorded here."}</p></CardContent></Card>}</section>
+        <section aria-labelledby="reviewed-title" id="reviewed"><div className="panel-section-heading"><h2 id="reviewed-title">Reviewed events</h2><span>{fetchError ? "Unavailable" : `${reviewed.length} events`}</span></div>{reviewed.length ? <div className="event-grid">{reviewed.map((item) => <EventCard key={item.id} event={item} imageUrl={imageUrls[item.id]} zoomPoster />)}</div> : <Card><CardContent className="empty-state compact-empty"><p>{fetchError ? "Reviewed events could not be loaded." : "Approved and rejected submissions will be recorded here."}</p></CardContent></Card>}</section>
     </WorkspaceShell>
   );
 }
