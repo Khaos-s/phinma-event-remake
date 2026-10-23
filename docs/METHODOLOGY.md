@@ -23,7 +23,11 @@ Inputs are Philippine local time. `philippineTimeToIso` validates the calendar d
 
 Boundary behavior is tested. The public page refreshes the schedule and current clock every minute; these filters are browsing aids, not access controls. Approval status is checked independently. A page can lag a newly approved event by up to its refresh interval; opening or refreshing it loads current data.
 
-Null `target_year` means every college year. Selecting a year includes both that year and all-year events. Search matches title, description, or course without case sensitivity; leading/trailing spaces are ignored. The CITE/BSIT scope is fixed until a later spec and schema change.
+Null `target_year` means every college year. Selecting a year includes both that year and all-year events. Search matches title, description, course, or department without case sensitivity; leading/trailing spaces are ignored. Department, course, and organizer filters combine with time and year. All filters default to all records; changing department resets course. Academic options are sourced from the university's directory, independently of whether any events exist for a program. A filter with no published matches shows an honest empty state.
+
+The organizer filter recognizes the existing CITE/BSIT pilot submissions as CITE Council. It does not label another department's events as council events. This is a pilot mapping, not a generic organization model: store trusted organizer/organization identity before onboarding other publishers. Current creation constraints and role grants still limit website submissions to the CITE pilot.
+
+Both `/` and `/events` use the same event browser. A public card opens a native modal dialog with contained focus, Escape/backdrop/close controls, restored focus, and a full-details link. `/events/[id]` independently fetches a record using both its UUID and `status = approved`, even for a signed-in administrator. Invalid IDs skip the query; missing or unpublished records are unavailable. No review controls or rejection notes appear in public details.
 
 ## Counts and feedback
 

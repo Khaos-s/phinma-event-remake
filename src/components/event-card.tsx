@@ -1,11 +1,11 @@
-import { CalendarDays, GraduationCap } from "lucide-react";
+import { ArrowUpRight, CalendarDays, GraduationCap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { EventStatus } from "@/components/event-status";
 import { EventRow, EventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
 
-export function EventCard({ event, imageUrl, stage, children }: { event: EventRow; imageUrl?: string; stage?: EventStage; children?: React.ReactNode }) {
+export function EventCard({ event, imageUrl, stage, children, onPreview }: { event: EventRow; imageUrl?: string; stage?: EventStage; children?: React.ReactNode; onPreview?: () => void }) {
   return (
-    <Card className="event-card overflow-hidden" role="article">
+    <Card className={`event-card overflow-hidden ${onPreview ? "event-card-interactive" : ""}`} role="article">
       <div className="event-image">
       {imageUrl ? (
         // Signed Storage URLs expire; native loading avoids caching them in Next's image optimizer.
@@ -15,7 +15,7 @@ export function EventCard({ event, imageUrl, stage, children }: { event: EventRo
       </div>
       <CardContent className="space-y-4 pt-6">
         <div>
-          <div className="event-card-heading"><p className="event-department">CITE Council · {event.course}</p><EventStatus status={stage ?? event.status} /></div>
+          <div className="event-card-heading"><p className="event-department">{event.department} · {event.course}</p><EventStatus status={stage ?? event.status} /></div>
           <h3>{event.title}</h3>
         </div>
         <p className="event-description">{event.description}</p>
@@ -25,6 +25,7 @@ export function EventCard({ event, imageUrl, stage, children }: { event: EventRo
         </div>
         {!children && event.status === "rejected" && event.rejection_reason && <p className="rejection-note"><strong>Review note:</strong> {event.rejection_reason}</p>}
         {children}
+        {onPreview && <button type="button" className="event-open" aria-label={`Preview ${event.title}`} onClick={onPreview}>View event<ArrowUpRight size={16} aria-hidden="true" /></button>}
       </CardContent>
     </Card>
   );

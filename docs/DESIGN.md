@@ -19,7 +19,9 @@ The actual product remains a CITE/BSIT event pilot: public discovery, one shared
 
 | Screen | Primary question | Composition |
 | --- | --- | --- |
-| Public event board | What events can I discover? | Compact campus photo header, approval notice, audience/search filter panel, time tabs, event cards |
+| Public home | What events can I discover? | Compact campus photo header, neutral audience/search filters, time tabs, clickable event cards, and an all-events link |
+| All events | What matches my interests? | Dedicated `/events` directory with department, course, organizer, year, search, and time filters |
+| Event quick view / full details | What is this event? | Native modal preview with full-details link; shareable `/events/[id]` announcement with complete poster, schedule, department, course, year, and description |
 | Shared login | How do I enter my account? | University image beside one form; on a phone, the form leads |
 | Member account | What account and access do I have? | Shared sidebar, verified identity card, access explanation, event browsing action |
 | Council organizer | What am I submitting and how is it progressing? | Own real status counts, form with poster/schedule/audience, submission history and review notes |

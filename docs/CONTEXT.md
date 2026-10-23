@@ -2,7 +2,7 @@
 
 ## Product and current scope
 
-PHINMA UI Event is a university event board for PHINMA University of Iloilo. The first release supports CITE Council and BSIT. A council organizer submits an event once; a PHINMA Event administrator reviews it. Approval publishes it automatically. Visitors browse approved events without an account.
+PHINMA UI Event is a university event board for PHINMA University of Iloilo. Public discovery includes department and course filters based on the university's college-programs directory. The first authorized publishing workflow supports CITE Council and BSIT. An organizer submits an event once; a PHINMA Event administrator reviews it. Approval publishes it automatically. Visitors browse approved events without an account.
 
 The source repository was an unfinished Flask/MySQL application. The remake uses Next.js App Router, React, TypeScript, the existing Tailwind UI components, hosted Supabase Auth/Postgres/Storage, and Vercel. Legacy student enrollment, scholarship hours, water reporting, relief operations, and other domains appearing in reference documents are not part of this application.
 
@@ -10,7 +10,7 @@ The source repository was an unfinished Flask/MySQL application. The remake uses
 
 | Account | Destination | Allowed work |
 | --- | --- | --- |
-| Signed-out visitor | `/` | Browse published events, search, and filter by time and year |
+| Signed-out visitor | `/`, `/events`, `/events/[id]` | Browse and preview published events, open full details, and filter by time, department, course, organizer, and year |
 | Registered member without a privileged grant | `/account` | View own account and browse events |
 | `cite_organizer` | `/organizer` | Submit a pending event and view own submissions |
 | `event_admin` | `/admin` | Read submissions and approve or reject pending events |
@@ -28,7 +28,8 @@ Everyone uses `/login`. Roles are trusted assignments in the database; no role c
 
 ## Structure
 
-- `src/app/`: public board, shared login, member account, organizer form, administrator queue.
+- `src/app/`: public home, all-events directory, individual event details, shared login, member account, organizer form, administrator queue.
+- `src/lib/academics.ts`: sourced college/program catalog; provenance and naming notes in `docs/ACADEMIC_REFERENCE.md`.
 - `src/components/`: session provider, public header/footer, workspace shell, event cards/status, and UI primitives.
 - `src/lib/events.ts`: shared event types, time conversion, audience/search filters, and signed image URL loading.
 - `src/lib/roles.ts`: safe role resolution and landing destinations. Database authorization is independent of this UI helper.

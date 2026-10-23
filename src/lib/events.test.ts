@@ -20,11 +20,23 @@ test("form times are interpreted in Philippine time", () => {
 });
 
 test("calendar filters combine time, audience, and search without hiding all-year events", () => {
-  const event = { ...schedule, title: "CITE Tech Week", description: "Campus workshop", course: "BSIT", target_year: null };
+  const event = { ...schedule, title: "CITE Tech Week", description: "Campus workshop", department: "College of Information Technology", course: "BSIT", target_year: null };
   const filters = { stage: "ongoing" as const, year: "2", query: "  TECH  " };
   const now = Date.parse(schedule.starts_at);
   assert.equal(matchesEventFilters(event, filters, now), true);
   assert.equal(matchesEventFilters({ ...event, target_year: 1 }, filters, now), false);
   assert.equal(matchesEventFilters(event, { ...filters, query: "sports" }, now), false);
   assert.equal(matchesEventFilters(event, filters, Date.parse(schedule.ends_at)), false);
+});
+
+test("department, course, and organizer filters narrow results independently", () => {
+  const event = { ...schedule, title: "Technology forum", description: "Workshop", department: "College of Information Technology", course: "BSIT", target_year: null };
+  const filters = { stage: "all" as const, year: "all", query: "", department: "all", course: "all", organizer: "all" };
+  const now = Date.parse(schedule.starts_at);
+  assert.equal(matchesEventFilters(event, { ...filters, department: event.department, course: "BSIT", organizer: "CITE Council" }, now), true);
+  assert.equal(matchesEventFilters(event, { ...filters, department: "College of Management" }, now), false);
+  assert.equal(matchesEventFilters(event, { ...filters, course: "BSHM" }, now), false);
+  const management = { ...event, department: "College of Management", course: "BSHM" };
+  assert.equal(matchesEventFilters(management, filters, now), true);
+  assert.equal(matchesEventFilters(management, { ...filters, organizer: "CITE Council" }, now), false);
 });

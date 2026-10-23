@@ -48,4 +48,6 @@ If upload succeeds but event insertion fails, the client attempts removal. Migra
 
 ## Data boundaries
 
-Database constraints and RLS apply even to direct API calls. UI checks give earlier feedback, not authorization. Public queries select approved events; organizer history also filters by `created_by`, even though RLS already hides other organizers' private records. New reports or views must preserve these boundaries and exclude account credentials/personal data.
+Database constraints and RLS apply even to direct API calls. UI checks give earlier feedback, not authorization. Public directory and individual-detail queries explicitly select approved events; the detail query also filters by UUID, regardless of a signed-in account's privileges. Organizer history also filters by `created_by`, even though RLS already hides other organizers' private records. New reports or views must preserve these boundaries and exclude account credentials/personal data.
+
+`src/lib/academics.ts` supplies the public department/course filter catalog from the university's official undergraduate listing. This catalog does not change database constraints or role grants. Organizer filtering currently maps only the known CITE/BSIT publishing pilot to CITE Council; trusted organization identity must be stored before other publishers are onboarded. See `ACADEMIC_REFERENCE.md` and `METHODOLOGY.md`.

@@ -1,6 +1,6 @@
 # PHINMA UI Event
 
-The CITE Council pilot for PHINMA University of Iloilo. Visitors can view approved events at [phinma-ui-event.vercel.app](https://phinma-ui-event.vercel.app). A CITE organizer submits an event, and a PHINMA Event administrator approves or rejects it. Approval publishes the event immediately.
+The event board for PHINMA University of Iloilo. Visitors can browse approved events at [phinma-ui-event.vercel.app/events](https://phinma-ui-event.vercel.app/events), filter by department/course/organizer/year/time, open a quick-view popup, and follow its full-details link. The first authorized publishing workflow uses a CITE organizer and a PHINMA Event administrator. Approval makes an event public.
 
 ## Run locally
 
@@ -24,6 +24,6 @@ npm run build
 npm test
 ```
 
-The pilot uses the College of Information Technology and BSIT. Other councils, student rosters, and email notifications are later work.
+The university department/course filter catalog is sourced in `docs/ACADEMIC_REFERENCE.md`. Website publishing currently uses the College of Information Technology and BSIT pilot. Other publishing organizations, student rosters, and email notifications are later work.
 
 Start with `docs/CONTEXT.md` for the code map, `docs/DATA_MODEL.md` for permissions, and `docs/METHODOLOGY.md` for the event workflow. `docs/DESIGN.md` explains how the supplied visual reference was adapted. Reusable agent/context/data/workflow templates and a general engineering guide are in `docs/reusable/`; they are references for future projects, not extra application requirements.

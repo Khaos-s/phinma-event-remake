@@ -25,14 +25,14 @@ export function SiteHeader() {
           <span className="event-wordmark">PHINMA UI Event<span>University of Iloilo</span></span>
         </Link>
         <nav aria-label="Main navigation" className="desktop-nav">
-          <Link href="/#events" className={`nav-link ${pathname === "/" ? "is-active" : ""}`}>Explore events</Link>
+          <Link href="/events" className={`nav-link ${pathname.startsWith("/events") ? "is-active" : ""}`}>All events</Link>
           <a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer" className="nav-link">Our university<ArrowUpRight size={13} aria-hidden="true" /></a>
           {loading ? <span className="nav-account-loading" aria-label="Checking account" /> : <Link href={user ? home : "/login"} className="primary-link">{user ? (role === "member" ? "My account" : "My workspace") : "Sign in"}<ArrowUpRight size={16} aria-hidden="true" /></Link>}
           {user && <SignOutButton compact />}
         </nav>
         <button type="button" className="mobile-menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-controls="mobile-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
-      {menuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="mobile-nav page-container"><Link href="/#events" onClick={() => setMenuOpen(false)}>Explore events</Link><a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer">Our university</a>{!loading && <Link href={user ? home : "/login"} onClick={() => setMenuOpen(false)}>{user ? (role === "member" ? "My account" : "My workspace") : "Sign in"}</Link>}{user && <SignOutButton />}</nav>}
+      {menuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="mobile-nav page-container"><Link href="/events" onClick={() => setMenuOpen(false)}>All events</Link><a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer">Our university</a>{!loading && <Link href={user ? home : "/login"} onClick={() => setMenuOpen(false)}>{user ? (role === "member" ? "My account" : "My workspace") : "Sign in"}</Link>}{user && <SignOutButton />}</nav>}
     </header>
   );
 }

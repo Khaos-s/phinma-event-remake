@@ -21,16 +21,21 @@ The primary user is an authorized CITE Council event organizer. An administrator
 5. As an administrator, I want one approval action to publish an event automatically.
 6. As an administrator, I want to reject a submission with a reason so the organizer understands the decision.
 7. As a visitor, I want to view approved events and filter them by Upcoming, Ongoing, or Past without signing in.
+8. As a visitor, I want department, course, organizer, and year filters, starting with all options selected.
+9. As a visitor, I want to click an event for a quick-view popup, then open its full details at a shareable event URL.
 
 ## Screens
 
-- Public events page: approved event cards, event details, and Upcoming/Ongoing/Past filter.
+- Public home `/`: university introduction and the shared event browser. No council-specific promotional block or approval workflow explanation.
+- All events `/events`: approved event directory with search and time, department, course, organizer, and year filters.
+- Quick view: clicking a public event card opens a modal with poster, title, schedule, audience, description, and a link to full details. Support close, Escape, focus containment/return, and phone scrolling.
+- Full details `/events/[id]`: directly open an approved event's complete announcement. Missing, invalid, or unpublished IDs show an unavailable state; failed requests show an error.
 - Shared sign-in page: email and password for all registered accounts.
 - Member account page: verified account identity, current access, and event browsing.
 - Organizer page: event submission form and own submissions with review status and rejection reason.
 - Administrator page: pending count, full submission details, and Approve/Reject actions.
 
-All authenticated pages share a role-aware sidebar workspace and a compact mobile navigation. The public board has search, time filters, and a year selector. The shared login uses the same PHINMA identity. The supplied design board is a visual reference only; scholarship/duty records and water-reporting rules are not included. See `docs/DESIGN.md` for the mapping.
+All authenticated pages share a role-aware sidebar workspace and a compact mobile navigation. Public filters use the official college-programs listing documented in `ACADEMIC_REFERENCE.md`. Department changes reset the course filter; CITE Council appears as an organizer option, not a default scope label. The shared login uses the same PHINMA identity. The supplied design board is a visual reference only; scholarship/duty records and water-reporting rules are not included. See `docs/DESIGN.md` for the mapping.
 
 ## Data
 
@@ -56,6 +61,6 @@ One shared Supabase Auth email and password form for all registered accounts. An
 ## Out of scope
 
 - Student roster and registration features from the legacy application.
-- More councils, colleges, and courses.
+- Publishing permissions and organizer identity storage for additional councils, departments, or staff; public academic filter options are included.
 - Email notifications and a separate council logo asset.
 - Editing or resubmitting an event after review; a rejected organizer may submit a new event.

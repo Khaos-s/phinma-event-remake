@@ -22,14 +22,22 @@ export type EventRow = {
 
 export type EventStage = "upcoming" | "ongoing" | "past";
 
+export function eventOrganizer(event: Pick<EventRow, "department" | "course">) {
+  // shortcut: the pilot's CITE/BSIT submissions belong to CITE Council; store organizer identity before adding other publishers.
+  return event.department === DEPARTMENT && event.course === COURSE ? "CITE Council" : null;
+}
+
 export function matchesEventFilters(
-  event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course">,
-  filters: { stage: EventStage | "all"; year: string; query: string },
+  event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course" | "department">,
+  filters: { stage: EventStage | "all"; year: string; query: string; department?: string; course?: string; organizer?: string },
   now: number,
 ) {
   return (filters.stage === "all" || eventStage(event, now) === filters.stage)
     && (filters.year === "all" || event.target_year === null || event.target_year === Number(filters.year))
-    && `${event.title} ${event.description} ${event.course}`.toLowerCase().includes(filters.query.trim().toLowerCase());
+    && (!filters.department || filters.department === "all" || event.department === filters.department)
+    && (!filters.course || filters.course === "all" || event.course === filters.course)
+    && (!filters.organizer || filters.organizer === "all" || eventOrganizer(event) === filters.organizer)
+    && `${event.title} ${event.description} ${event.course} ${event.department}`.toLowerCase().includes(filters.query.trim().toLowerCase());
 }
 
 export function eventStage(event: Pick<EventRow, "starts_at" | "ends_at">, now: number): EventStage {

@@ -5,7 +5,7 @@ Good ideas that are not in the MVP.
 Parking something here is a decision, not a loss. It is how the MVP
 stays small enough to actually ship by Session 3.
 
-- Councils, departments, and courses beyond the CITE Council / BSIT pilot.
+- Publishing access, trusted organizer/organization identity, and creation constraints beyond the CITE Council / BSIT pilot. Public department/course browsing options are already included.
 - Student registration, student rosters, and year-level accounts from the old Flask/MySQL project.
 - Editing already published events with a fresh review of proposed changes.
 - Separate council logo and event poster assets if one event image is insufficient.

@@ -8,7 +8,7 @@ const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-body", display:
 
 export const metadata: Metadata = {
   title: "PHINMA UI Event | University of Iloilo",
-  description: "Find approved CITE Council events at PHINMA University of Iloilo.",
+  description: "Discover PHINMA University of Iloilo events by department, course, organizer, and year level.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
