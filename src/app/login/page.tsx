@@ -1,69 +1,71 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { useAccount } from "@/components/auth-provider";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { roleHome } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const client = useMemo(() => createClient(), []);
   const router = useRouter();
+  const account = useAccount();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!account.loading && account.user && !account.error) router.replace(roleHome(account.role));
+  }, [account, router]);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError("");
 
-    const { data, error: signInError } = await client.auth.signInWithPassword({ email, password });
+    const { data, error: signInError } = await client.auth.signInWithPassword({ email: email.trim(), password });
     if (signInError || !data.user) {
       setError("Sign-in failed. Check your email and password.");
       setBusy(false);
       return;
     }
 
-    const { data: assignment, error: roleError } = await client
-      .from("role_assignments")
-      .select("role")
-      .eq("user_id", data.user.id)
-      .single();
-    if (roleError || !assignment) {
-      await client.auth.signOut();
-      setError("This account has no event role yet. Ask the project administrator for access.");
-      setBusy(false);
-      return;
-    }
-
-    router.replace(assignment.role === "event_admin" ? "/admin" : "/organizer");
+    setBusy(false);
   }
 
   return (
     <>
       <SiteHeader />
-      <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-3">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary"><LockKeyhole className="size-6" aria-hidden="true" /></div>
-            <CardTitle className="text-2xl">Organizer and administrator sign in</CardTitle>
-            <p className="text-sm leading-6 text-muted-foreground">Use the Supabase account assigned to your CITE Council or PHINMA Event role.</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={signIn} className="space-y-5">
-              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></div>
-              <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /></div>
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</Button>
+      <main id="main-content" className="login-layout">
+        <div className="login-story">
+          <Image src="/images/phinma-students.jpg" alt="PHINMA University of Iloilo students on campus" fill sizes="(min-width: 1024px) 52vw, 100vw" className="login-photo" priority />
+          <div className="login-story-caption"><span className="story-location">PHINMA University of Iloilo</span><p>A place to belong.<br /><span>A moment to be part of.</span></p><span>Discover what brings our campus together.</span></div>
+        </div>
+        <div className="login-form-panel">
+          <div className="login-form-inner">
+            <Link href="/" className="back-link"><ArrowLeft size={16} aria-hidden="true" />Back to campus events</Link>
+            <h1>Welcome back.</h1>
+            <p className="login-intro">One account. Your campus, connected.</p>
+            <form onSubmit={signIn} className="login-form">
+              <div className="space-y-2"><Label htmlFor="email">Email address</Label><Input id="email" name="email" type="email" autoComplete="email" placeholder="Enter your email address" maxLength={254} required value={email} onChange={(event) => setEmail(event.target.value)} className="h-12" /></div>
+              <div className="space-y-2"><Label htmlFor="password">Password</Label><div className="password-field"><Input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 pr-12" /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
+              {(error || account.error) && <p role="alert" className="form-error">{error || account.error}</p>}
+              <Button type="submit" className="h-12 w-full justify-between px-5" disabled={busy || account.loading}>{busy ? "Signing in…" : "Sign in"}<ArrowRight size={18} aria-hidden="true" /></Button>
             </form>
-          </CardContent>
-        </Card>
+            <div className="login-access-note"><ShieldCheck size={18} aria-hidden="true" /><p>Students, staff, council organizers, and administrators sign in here. Your account opens the tools available to you.</p></div>
+            <p className="login-help">Need an account or help signing in?<br />Contact your PHINMA Event administrator.</p>
+          </div>
+          <p className="login-form-footer">Made for our university community.</p>
+        </div>
       </main>
     </>
   );

@@ -22,6 +22,16 @@ export type EventRow = {
 
 export type EventStage = "upcoming" | "ongoing" | "past";
 
+export function matchesEventFilters(
+  event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course">,
+  filters: { stage: EventStage | "all"; year: string; query: string },
+  now: number,
+) {
+  return (filters.stage === "all" || eventStage(event, now) === filters.stage)
+    && (filters.year === "all" || event.target_year === null || event.target_year === Number(filters.year))
+    && `${event.title} ${event.description} ${event.course}`.toLowerCase().includes(filters.query.trim().toLowerCase());
+}
+
 export function eventStage(event: Pick<EventRow, "starts_at" | "ends_at">, now: number): EventStage {
   if (now < Date.parse(event.starts_at)) return "upcoming";
   if (now < Date.parse(event.ends_at)) return "ongoing";

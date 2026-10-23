@@ -1,34 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
+import { useAccount } from "@/components/auth-provider";
+import { SignOutButton } from "@/components/sign-out-button";
+import { roleHome } from "@/lib/roles";
 
-type Role = "cite_organizer" | "event_admin";
-
-export function SiteHeader({ role }: { role?: Role }) {
-  const router = useRouter();
-
-  async function signOut() {
-    await createClient().auth.signOut();
-    router.replace("/");
-    router.refresh();
-  }
+export function SiteHeader() {
+  const pathname = usePathname();
+  const { user, role, loading } = useAccount();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const home = roleHome(role);
 
   return (
-    <header className="border-b border-border bg-card/95">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground" aria-hidden="true">P</span>
-          <span><span className="block text-sm leading-tight">PHINMA Event</span><span className="block text-xs font-normal text-muted-foreground">University of Iloilo</span></span>
+    <header className="site-header">
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <div className="page-container header-main">
+        <Link href="/" className="site-brand" aria-label="PHINMA UI Event home" onClick={() => setMenuOpen(false)}>
+          <Image src="/images/phinma-ui-logo-white.png" width={110} height={55} alt="PHINMA University of Iloilo" className="university-logo" priority />
+          <span className="brand-divider" aria-hidden="true" />
+          <span className="event-wordmark">PHINMA UI Event<span>University of Iloilo</span></span>
         </Link>
-        <nav aria-label="Main navigation" className="flex items-center gap-2">
-          <Link href="/" className={buttonVariants({ variant: "ghost", size: "sm" })}>Events</Link>
-          {role && <Link href={role === "event_admin" ? "/admin" : "/organizer"} className={buttonVariants({ variant: "ghost", size: "sm" })}>{role === "event_admin" ? "Review" : "My events"}</Link>}
-          {role ? <Button size="sm" variant="outline" onClick={signOut}>Sign out</Button> : <Link href="/login" className={buttonVariants({ size: "sm" })}>Sign in</Link>}
+        <nav aria-label="Main navigation" className="desktop-nav">
+          <Link href="/#events" className={`nav-link ${pathname === "/" ? "is-active" : ""}`}>Explore events</Link>
+          <a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer" className="nav-link">Our university<ArrowUpRight size={13} aria-hidden="true" /></a>
+          {loading ? <span className="nav-account-loading" aria-label="Checking account" /> : <Link href={user ? home : "/login"} className="primary-link">{user ? (role === "member" ? "My account" : "My workspace") : "Sign in"}<ArrowUpRight size={16} aria-hidden="true" /></Link>}
+          {user && <SignOutButton compact />}
         </nav>
+        <button type="button" className="mobile-menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-controls="mobile-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
+      {menuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="mobile-nav page-container"><Link href="/#events" onClick={() => setMenuOpen(false)}>Explore events</Link><a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer">Our university</a>{!loading && <Link href={user ? home : "/login"} onClick={() => setMenuOpen(false)}>{user ? (role === "member" ? "My account" : "My workspace") : "Sign in"}</Link>}{user && <SignOutButton />}</nav>}
     </header>
   );
 }

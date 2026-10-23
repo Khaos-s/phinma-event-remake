@@ -1,4 +1,4 @@
-# PHINMA Event
+# PHINMA UI Event
 
 The CITE Council pilot for PHINMA University of Iloilo. Visitors can view approved events at [phinma-ui-event.vercel.app](https://phinma-ui-event.vercel.app). A CITE organizer submits an event, and a PHINMA Event administrator approves or rejects it. Approval publishes the event immediately.
 
@@ -14,14 +14,16 @@ npm run dev
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` using the project's Supabase URL and publishable key. The same two variables must be configured in Vercel. Never put a Supabase secret or service role key in this app.
 
-The database setup is in `supabase/sql/001_cite_events.sql` and `supabase/sql/002_cleanup_unsubmitted_images.sql`, applied in order. Supabase Auth users need trusted `role_assignments` records for either `cite_organizer` or `event_admin`; the website cannot grant roles. See `docs/SPEC.md` for the workflow and access rules.
+The database setup is in `supabase/sql/001_cite_events.sql` and `supabase/sql/002_cleanup_unsubmitted_images.sql`, applied in order. All registered users share `/login`. Accounts with trusted `role_assignments` records for `cite_organizer` or `event_admin` open their own workspaces; other accounts receive member access at `/account`. The website cannot grant roles. See `docs/SPEC.md` for the workflow and access rules, and `docs/IMAGE_SOURCES.md` for university image credits.
 
 ## Checks
 
 ```bash
 npm run lint
 npm run build
-node --test src/lib/events.test.ts
+npm test
 ```
 
 The pilot uses the College of Information Technology and BSIT. Other councils, student rosters, and email notifications are later work.
+
+Start with `docs/CONTEXT.md` for the code map, `docs/DATA_MODEL.md` for permissions, and `docs/METHODOLOGY.md` for the event workflow. `docs/DESIGN.md` explains how the supplied visual reference was adapted. Reusable agent/context/data/workflow templates and a general engineering guide are in `docs/reusable/`; they are references for future projects, not extra application requirements.

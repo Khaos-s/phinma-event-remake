@@ -25,9 +25,12 @@ The primary user is an authorized CITE Council event organizer. An administrator
 ## Screens
 
 - Public events page: approved event cards, event details, and Upcoming/Ongoing/Past filter.
-- Sign-in page: email and password for the two test roles.
+- Shared sign-in page: email and password for all registered accounts.
+- Member account page: verified account identity, current access, and event browsing.
 - Organizer page: event submission form and own submissions with review status and rejection reason.
 - Administrator page: pending count, full submission details, and Approve/Reject actions.
+
+All authenticated pages share a role-aware sidebar workspace and a compact mobile navigation. The public board has search, time filters, and a year selector. The shared login uses the same PHINMA identity. The supplied design board is a visual reference only; scholarship/duty records and water-reporting rules are not included. See `docs/DESIGN.md` for the mapping.
 
 ## Data
 
@@ -39,7 +42,7 @@ For the pilot, the department and course are College of Information Technology a
 
 ## Login
 
-Supabase Auth email and password. Use one test CITE organizer and one test PHINMA Event administrator account. Public visitors do not sign in. No public role selection or self-assignment.
+One shared Supabase Auth email and password form for all registered accounts. An administrator goes to the review queue, a CITE organizer goes to event submission, and an account without a privileged role goes to its member account page. Role grants come only from `role_assignments`; absence of a grant means member access. User-editable metadata and form inputs never grant permissions. Public visitors can browse without signing in. The navigation reflects the current account and supports sign-out. No public role selection or self-assignment.
 
 ## Done for the demo
 
