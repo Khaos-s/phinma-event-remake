@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
@@ -20,7 +19,7 @@ export function SiteHeader() {
       <a className="skip-link" href="#main-content">Skip to content</a>
       <div className="page-container header-main">
         <Link href="/" className="site-brand" aria-label="PHINMA UI Event home" onClick={() => setMenuOpen(false)}>
-          <Image src="/images/phinma-ui-logo-white.png" width={110} height={55} alt="PHINMA University of Iloilo" className="university-logo" priority />
+          <span role="img" aria-label="PHINMA University of Iloilo" className="university-logo" />
           <span className="brand-divider" aria-hidden="true" />
           <span className="event-wordmark">PHINMA UI Event<span>University of Iloilo</span></span>
         </Link>

@@ -10,6 +10,7 @@ The actual product remains a CITE/BSIT event pilot: public discovery, one shared
 
 - Brand action: PHINMA forest green `#006341`; hover `#004E35`.
 - Accent: gold `#F4C62B`, used for the event mark rather than body text.
+- University wordmarks use a yellow sun (`#F8CE00`) and green lettering (`#344B21`) following the owner's supplied reference. The public header and workspace share this treatment. Browser tab icons use the owner-supplied college seal, fitted proportionally with transparency preserved.
 - Canvas `#F6F7F3`, white surfaces, primary text `#1D3027`, secondary text `#58655B`.
 - Headings: Bricolage Grotesque; body/UI: DM Sans, loaded through `next/font`.
 - Main type: 32 px page title, 24–28 px section title, 18–21 px card title, 14–15 px body, 12–13 px metadata. Phone sizes adapt to available space.

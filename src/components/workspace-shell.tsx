@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -50,7 +49,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
         <div className="sidebar-brand-row"><Link href="/" className="brand-lockup"><span className="brand-symbol"><CalendarDays size={23} aria-hidden="true" /></span><span>PHINMA UI Event<small>Campus life, connected</small></span></Link><button type="button" className="sidebar-close icon-button" aria-label="Close navigation" onClick={() => setOpen(false)}><X size={20} /></button></div>
         <div className="sidebar-section-label">Your workspace</div>
         <nav aria-label="Workspace navigation" className="workspace-navigation">{links.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-current={href === pathname ? "page" : undefined} onClick={() => setOpen(false)}><Icon size={18} aria-hidden="true" /><span>{label}</span></Link>)}</nav>
-        <div className="sidebar-university"><Image src="/images/phinma-ui-logo-white.png" alt="PHINMA University of Iloilo" width={130} height={65} className="university-logo" /><p>A shared space for our<br />university community.</p></div>
+        <div className="sidebar-university"><span role="img" aria-label="PHINMA University of Iloilo" className="university-logo" /><p>A shared space for our<br />university community.</p></div>
         <div className="sidebar-account"><span className="account-avatar" aria-hidden="true">{user?.email?.[0]?.toUpperCase() ?? "P"}</span><div><strong>{role ? roleLabels[role] : "Your account"}</strong><span>{user?.email ?? "Checking access…"}</span></div></div>
         {user && <SignOutButton />}
       </aside>

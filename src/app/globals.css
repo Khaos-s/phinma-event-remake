@@ -59,7 +59,7 @@ button:disabled { cursor: wait; }
 .site-header { background: var(--card); border-bottom: 1px solid var(--border); }
 .header-main { display: flex; align-items: center; justify-content: space-between; min-height: 84px; gap: 24px; }
 .site-brand { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
-.university-logo { width: 110px; height: 55px; object-fit: contain; filter: brightness(0) saturate(100%) invert(26%) sepia(52%) saturate(1200%) hue-rotate(114deg) brightness(82%) contrast(105%); }
+.university-logo { display: inline-block; flex: none; width: 110px; height: 55px; background: linear-gradient(to bottom, #f8ce00 0 58%, #344b21 58% 100%); mask: url("/images/phinma-ui-logo-white.png") center / contain no-repeat; }
 .brand-divider { width: 1px; height: 32px; background: var(--border); }
 .event-wordmark { font-size: 22px; line-height: 1.2; }
 .event-wordmark span { display: block; font-family: var(--font-body), sans-serif; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--muted-foreground); margin-top: 4px; }
