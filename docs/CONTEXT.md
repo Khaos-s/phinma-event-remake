@@ -10,7 +10,7 @@ The source repository was an unfinished Flask/MySQL application. The remake uses
 
 | Account | Destination | Allowed work |
 | --- | --- | --- |
-| Signed-out visitor | `/`, `/events`, `/events/[id]` | Browse and preview published events, open full details, and filter by time, department, course, organizer, and year |
+| Signed-out visitor | `/`, `/events`, `/events/[id]`, `/contact` | Browse/preview approved events, use schedule/audience filters, discover featured/live events, download calendar files, share details, and find university contact channels |
 | Registered member without a privileged grant | `/account` | View own account and browse events |
 | `organizer` | `/organizer` | Submit events, view own submissions, and revise/resubmit own rejected events in the assigned organization |
 | `event_admin` | `/admin` | Read submissions and approve or reject pending events |
@@ -28,10 +28,12 @@ Everyone uses `/login`. Roles and organization membership are trusted assignment
 
 ## Structure
 
-- `src/app/`: public home, all-events directory, individual event details, shared login, member account, organizer form, administrator queue.
+- `src/app/`: public home, all-events directory, individual event details, contact page, shared login, member account, organizer form, administrator queue.
 - `src/lib/academics.ts`: sourced college/program catalog; provenance and naming notes in `docs/ACADEMIC_REFERENCE.md`.
 - `src/components/`: session provider, public header/footer, workspace shell, event cards/status, and UI primitives.
 - `src/lib/events.ts`: shared event types and organization relation selection, time conversion, audience/search filters, and signed image URL loading.
+- `src/lib/public-events.ts`: approved-only featured/live/related selection, countdown and Philippine date tiles. `calendar.ts` exports escaped, UTF-8-folded UTC calendar files. `public-event-metadata.ts` reads only approved title/description anonymously for per-event metadata. `site.ts` shares verified public university contact facts.
+- `src/components/featured-event.tsx`, `happening-now.tsx`, and `event-actions.tsx`: derived public discovery and browser calendar/share actions. `src/hooks/use-scroll-reveal.ts` reveals content once and respects reduced motion.
 - Public event reads select announcement fields explicitly; organizer/admin full records come from the role-checked `workspace_events()` RPC. Column grants protect private creator/reviewer metadata independently of UI selection.
 - `src/lib/posters.ts`: shared poster MIME/size validation. Pre-submit previews use local object URLs with cleanup; full public details support a poster zoom dialog.
 - `src/lib/roles.ts`: safe role resolution and landing destinations. Database authorization is independent of this UI helper.
@@ -41,6 +43,8 @@ Everyone uses `/login`. Roles and organization membership are trusted assignment
 ## Design
 
 Use PHINMA green and gold, neutral light surfaces, clear text, and real campus imagery. The supplied HTML design board informs spacing, typography, components, and the shared sidebar; its example product, users, data, and business rules are references only. Image provenance is in `IMAGE_SOURCES.md`. All counts come from actual visible records. Keep desktop and mobile navigation functional and accessible.
+
+Public discovery now uses a full-width deep-green hero, white university mark, arch-cropped campus photo, overlapping search bar, extra-filter disclosure, date-tile cards, and sliding time pills. Featured/live selections derive from approved schedules and the shared minute clock; featured content is omitted when unavailable. Public details/quick view reuse poster zoom, include calendar/share actions, and show up to three related approved events. Contact and footer share the official address with postal code 5000; `La Paz` is omitted because the official university address does not list it. No new data column, policy, RPC, role, or dependency was added for this public update.
 
 ## Current limitations
 

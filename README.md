@@ -26,6 +26,8 @@ npm test
 
 With Playwright available in the environment (or on `NODE_PATH`) and Microsoft Edge installed, run `node tests/organizer-flow.mjs` against `npm run dev`. `TEST_BASE_URL` can point it at a running build. Organizer writes/auth are intercepted browser fixtures; public layout checks read real published data. It covers rejected-event revisions, retained/replaced posters, failed saves/cleanup, cancellation, phone layouts, and reduced motion without creating hosted events. Run `supabase/tests/rejected_event_resubmission.sql` alongside the other SQL suites to verify database permissions; its fixtures roll back.
 
+`node tests/public-experience.mjs` uses the same Playwright runtime for isolated public-page fixtures: featured/live timing, search/filter persistence, quick-view and nested poster focus, calendar download, share fallbacks, related announcements, contact navigation, loading/errors, and reduced motion at 1280px/390px. It makes no hosted writes. The real public home can be empty; no sample events are seeded for presentation.
+
 The university department/course catalog is sourced in `docs/ACADEMIC_REFERENCE.md`. The original CITE test assignment is preserved. The organizer form includes a local poster preview; phone filters collapse; full-detail posters can be zoomed. Student rosters and email notifications are later work.
 
 Database RLS and security tests are in `supabase/tests/organization_access.sql` and `supabase/tests/security_boundaries.sql`; all test identities/events/Storage metadata are rolled back. Public queries use announcement-only column grants; complete workspace records use a scoped RPC. See `docs/VERIFICATION.md` for checks and `docs/AUDIT.md` for findings, repairs, and unresolved hosted Auth settings.

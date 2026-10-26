@@ -10,19 +10,20 @@ The product supports public discovery, one shared login, member identity, scoped
 
 - Brand action: PHINMA forest green `#006341`; hover `#004E35`.
 - Accent: gold `#F4C62B`, used for the event mark rather than body text.
-- University wordmarks use a yellow sun (`#F8CE00`) and green lettering (`#344B21`) following the owner's supplied reference. The public header and workspace share this treatment. Browser tab icons use the owner-supplied college seal, fitted proportionally with transparency preserved.
-- Canvas `#F4F6F2`, white surfaces, primary text `#1D3027`, secondary text `#58655B`.
+- University wordmarks use a yellow sun (`#F8CE00`) and green lettering (`#344B21`) on light surfaces; the home header uses the supplied white mark on deep green. Workspace marks retain their existing treatment. Browser tab icons use the owner-supplied college seal, fitted proportionally with transparency preserved.
+- Public discovery canvas `#F6F7F3`, existing workspace canvas `#F4F6F2`, white surfaces, primary text `#1D3027`, secondary text `#58655B`.
 - Headings: Bricolage Grotesque; body/UI: DM Sans, loaded through `next/font`.
 - Main type: 32 px page title, 24–28 px section title, 18–21 px card title, 14–15 px body, 12–13 px metadata. Phone sizes adapt to available space.
-- Shared 8/12 px control/card corners, 24 px working gaps, and visible focus states. Brief section/dialog entrances, card hover lift, and link feedback respect reduced motion. No motion dependency or looping animation is required.
+- Shared 8/12 px control/card corners, 24 px working gaps, and visible focus states. Section/dialog entrances, card hover lift and link feedback respect reduced motion. No motion dependency; only the live-event dot loops, and countdown digits animate on value changes.
 
 ## Screens
 
 | Screen | Primary question | Composition |
 | --- | --- | --- |
-| Public home | What events can I discover? | Compact campus photo header, neutral audience/search filters, time tabs, clickable event cards, and an all-events link |
+| Public home | What events can I discover? | Full-width deep-green hero, white mark, arch campus photo, overlapping search, live strip, derived featured event, time pills and poster-first event grid |
 | All events | What matches my interests? | Dedicated `/events` directory with department, course, organizer, year, search, and time filters |
-| Event quick view / full details | What is this event? | Native modal preview with full-details link; shareable `/events/[id]` announcement with complete poster, schedule, department, course, year, and description |
+| Event quick view / full details | What is this event? | Sticky zoomable poster beside facts/about/actions; calendar download, native sharing or copy fallback, and up to three related approved events. Native modal retains full-details link, nested poster zoom, Escape/focus return and scroll lock |
+| Contact | How do I reach the university or publish an event? | Verified address/phone/email, Maps search link, university link and administrator/sign-in guidance; no contact backend |
 | Shared login | How do I enter my account? | University image beside one form; on a phone, the form leads |
 | Member account | What account and access do I have? | Shared sidebar, verified identity card, access explanation, event browsing action |
 | Organizer | What am I submitting and how is it progressing? | Assigned organization and department, valid course choices, own status counts, local poster preview, submission history and review notes |
@@ -45,3 +46,17 @@ The public home uses the campus photograph beside a forest-green field, a two-li
 The organizer’s primary task is preparing an event for review. A rejected card offers **Edit and resubmit**; its saved details, local Philippine times, current poster, and administrator note load into the existing form. The form offers **Cancel revision** and **Resubmit for review**. A pending card explicitly says it remains private until approved; a published card explicitly says editing is locked. The review guide explains Prepare, Review, and Publish. At narrow phone widths, time filters and result counts wrap instead of widening the page, and editable fields use 16px text.
 
 Reusing the existing form and trusted review-RPC pattern keeps the workflow small. A separate editor route would duplicate the form; direct review-state updates would weaken the boundary. The resubmission RPC instead accepts only content and controls the pending reset itself. Existing poster-delete RLS protects linked images, so no wider Storage write policy is needed.
+
+## Public campus experience
+
+The owner's detailed 2026-10-26 brief defines the public design. Its external Claude artifact could not be accessed; no claim is made of matching uninspected pixels. The hero uses the existing campus photograph in a 280px arch with a two-line headline. Desktop search replaces the sidebar; course/organizer remain in a native More filters disclosure. Phones retain Show/Hide filters without resetting values. Cards contain the complete 4:3 poster, a gold Philippine day/month tile, publisher/audience/schedule, and a text/icon status chip. Workspace card behavior is unchanged.
+
+Featured selection prefers an ongoing approved event with earliest end, otherwise the nearest upcoming approved event; none means no featured block. The live strip uses inclusive start/exclusive end boundaries. Countdown days/hours/minutes update through the existing 60-second clock; screen-reader messages change on the coarser day/hour/state boundary. No admin feature flag or persisted schedule category is introduced. Search filters affect the directory grid; live/featured sections describe the whole campus.
+
+Details and quick view use the same complete announcement and actions. Calendar files escape text, fold UTF-8 lines at 75 octets, and export UTC timestamps with no location field. Share uses the native API, then clipboard, then a selectable URL if clipboard is denied. Related events prefer the same organizer, otherwise the department, exclude the current/unpublished record and show at most three. Metadata makes an anonymous, approved-only title/description request and never includes private fields or expiring poster URLs.
+
+Motion uses CSS entrances, a one-time photo scale, hover/focus feedback, a sliding pill, dialog/backdrop entrance, and a one-shot IntersectionObserver hook. Results use a short native browser animation without remounting event cards, preserving modal return focus across refreshes. The live dot pulses; countdown digits animate only when their value changes. Reduced-motion settings remove movement, including when preferences change while open. Skeleton cards are static and labeled as loading; scroll-reveal content is visible before JS adds any pending state.
+
+University contact facts were checked on 2026-10-26 against the [official university page](https://ui.phinma.edu.ph/about-us/) and [PHINMA corporate contact directory](https://www.phinma.com.ph/contact-us-2/). Both list Rizal Street in Iloilo City; neither lists La Paz. Use `Rizal Street, Iloilo City, Iloilo 5000, Philippines` in contact/footer, `(033) 338-1071 loc. 106`, and `info.ui@phinmaed.com` with a source/confirmation comment. The Maps URL is a search query, not invented coordinates or an event venue.
+
+The owner then supplied the original [Khaos-s/Phinma-Event repository](https://github.com/Khaos-s/Phinma-Event). Its main tree, PHINMA home templates and older Flask templates were inspected. The [old contact prototype](https://github.com/Khaos-s/Phinma-Event/blob/main/old/New%20folder/not%20yet/contact.html) contains placeholder address text and personal contact examples, not a verified university street address. No La Paz address was found in the reviewed files. No legacy roster/account/credential or personal contact data was copied. Legacy administration/student-management examples do not supersede the accepted shared-calendar, single-administrator event approval model.

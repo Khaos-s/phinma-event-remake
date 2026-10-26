@@ -24,11 +24,14 @@ The primary user is an authorized event organizer assigned to a trusted organiza
 8. As a visitor, I want department, course, organizer, and year filters, starting with all options selected.
 9. As a visitor, I want to click an event for a quick-view popup, then open its full details at a shareable event URL.
 10. As an organizer, I want to revise my own rejected event using the administrator’s note and resubmit it for a fresh review, keeping or replacing its poster.
+11. As a visitor, I want to discover live/featured approved events, download an event calendar file, share its details, and find related approved events.
+12. As a visitor, I want a contact page with verified university contact channels and event-publication guidance.
 
 ## Screens
 
 - Public home `/`: university introduction and the shared event browser. No council-specific promotional block or approval workflow explanation.
 - All events `/events`: approved event directory with search and time, department, course, organizer, and year filters.
+- Public contact `/contact`: verified university address/phone/email, university/Maps links, and administrator/sign-in guidance without a contact backend.
 - Quick view: clicking a public event card opens a modal with poster, title, schedule, audience, description, and a link to full details. Support close, Escape, focus containment/return, and phone scrolling.
 - Full details `/events/[id]`: directly open an approved event's complete announcement. Missing, invalid, or unpublished IDs show an unavailable state; failed requests show an error.
 - Shared sign-in page: email and password for all registered accounts.

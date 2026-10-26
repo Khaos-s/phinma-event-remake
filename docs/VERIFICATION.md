@@ -1,5 +1,17 @@
 # Verification: organization access and event usability
 
+## 2026-10-26: public campus experience
+
+- Followed the attached implementation brief and the saved public-experience plan. Read repository context/spec/design/data/methodology/later documents, public components, and bundled Next.js client/server, CSS, and metadata guides. No database policy, RPC, role, migration, privileged key, dependency, or workspace behavior was changed.
+- Lint is clean; 18 unit tests and production build pass. Tests cover PHT date boundaries, featured/live selection, countdown boundaries, related-event scope/cap, calendar text injection/UTF-8 line folding/UTC dates, and approved-only anonymous metadata/error fallback.
+- `tests/public-experience.mjs` passes isolated browser fixtures for populated discovery, search/filter persistence and course reset, time pills, minute refresh, countdown-to-live transitions, nested poster zoom/Escape/scroll lock, keyboard focus containment/return, refresh while preview is open, calendar download, native-share payload/cancellation mocks, clipboard/manual-copy fallback, related events, contact links, skeleton/error/empty states and reduced-motion changes. Fixture data exists only in isolated network interceptions; no public sample events were inserted.
+- Screenshots of public home, event detail and contact were inspected at 1280px/390px. Home also fits at 320px. Real anonymous empty-home checks fit at 1280/960/768/390px. Nine key public text/background pairs pass 4.5:1; measured ratios range from 5.65:1 to 12.97:1. Dark-green home navigation/hero use gold focus outlines. Public action targets are at least 44px.
+- Existing `tests/organizer-flow.mjs` regression suite passes, including rejected-event resubmission/cleanup/uncertain saves and organizer/admin/member desktop/phone views. `git diff -- supabase` is empty.
+- Whole-change review found a result-wrapper remount that could disconnect a modal trigger during refresh. The wrapper now stays mounted; native browser animation preserves keyed cards. A fixture appends an event while preview is open and confirms the original trigger remains connected and receives focus on close. Reviewer confirmed the fix with no remaining important findings.
+- Contact address, phone and email were reconciled with official university/corporate sources and the original `Khaos-s/Phinma-Event` repository. Its old contact page has placeholder location text; reviewed legacy files do not verify La Paz. The official Rizal Street/Iloilo City/postal-code address is shared by contact/footer. No legacy personal contact, account, credential or roster data was copied.
+
+Not verified: the unavailable Claude artifact's exact pixels; importing downloads into real Google/Apple/Outlook calendars; native share sheets on physical phones; actual password login/Storage transfer. Populated public metadata is checked with unit fixtures because no published test event was created in the hosted database. Venue, registration and contact-form backends remain postponed in `LATER.md`. Production deployment verification is recorded in the delivery response.
+
 ## 2026-10-26: rejected-event revisions and visual refresh
 
 - Bundled Next.js 16.4.2 guides read before edits: Server and Client Components; CSS for global/Tailwind styling.
