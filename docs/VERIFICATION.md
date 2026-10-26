@@ -1,5 +1,20 @@
 # Verification: organization access and event usability
 
+## 2026-10-26: rejected-event revisions and visual refresh
+
+- Bundled Next.js 16.4.2 guides read before edits: Server and Client Components; CSS for global/Tailwind styling.
+- Additive migration `007_rejected_event_resubmission.sql` applied to hosted Supabase. Earlier migrations were not edited. UPDATE grants cover content columns only, RLS restricts both old/new rows to own rejected events/current organization, and the authenticated resubmission RPC controls the pending reset.
+- All three hosted SQL suites pass, including new `rejected_event_resubmission.sql`: same-organization cross-owner denial, role revocation/assignment change, protected review/identity fields, invalid input, pending/approved locks, repeated requests, atomic reset, private pending state, and fresh administrator approval. All fixture identities/events roll back.
+- `npm test`: 11 tests pass, including Philippine input round-tripping across a UTC year boundary. `npm run lint` and `npm run build` pass.
+- `tests/organizer-flow.mjs` uses isolated browser fixtures for auth and organizer writes. Checked retained/replaced posters, failed RPC cleanup, successful-save old-poster cleanup, cleanup failure feedback, uncertain save responses, cancel/object-URL release, existing new-event submission, reduced motion, and mobile drawer dismissal. Uncertain responses keep posters; fixtures simulate a committed pending revision with a lost response and confirm no deletion.
+- Home, directory, login, and organizer layouts checked at 1440, 768, 390, and 320px; administrator/member workspaces checked at desktop and phone widths. Fixed public-toolbar overflow at 320px. Screenshots were inspected for the public home and organizer revision screens; generated screenshots remain ignored in `.taste-skill/`.
+- Taste inspector: 0 failures across 1440/768/390px. Its app-title-size warning refers to the deliberately larger public landing headline; working screens retain compact titles. Existing brand palette/type and campus image are reused; no new dependencies or fabricated public records.
+- Security advisor: five deliberate authenticated security-definer APIs now include `resubmit_event`, each with empty search paths and checked access. Existing leaked-password-protection warning remains. No RLS-disabled tables or anonymously callable resubmission API were introduced.
+
+Still not verified: real password login and real Storage transfer/deletion using an organizer and administrator account. Browser fixtures prove UI request ordering and error handling, not actual Storage transfer. Unknown save outcomes may leave a private orphan; retaining it prevents breaking a late-committing revision. Existing Auth signup/leaked-password settings and scale limitations remain as documented below.
+
+## Earlier verification
+
 Checked 2026-10-23. Scope: trusted organization/department access, administrator-only publication, local poster preview, collapsible phone filters, and full-details poster zoom.
 
 ## Executed checks

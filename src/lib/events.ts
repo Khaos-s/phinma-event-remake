@@ -54,6 +54,12 @@ export function philippineTimeToIso(value: string): string | null {
     : null;
 }
 
+export function philippineTimeInput(value: string) {
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return "";
+  return new Date(time + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
+}
+
 export function formatPhilippineTime(value: string) {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Invalid schedule";

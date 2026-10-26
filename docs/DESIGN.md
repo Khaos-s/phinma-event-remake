@@ -11,10 +11,10 @@ The product supports public discovery, one shared login, member identity, scoped
 - Brand action: PHINMA forest green `#006341`; hover `#004E35`.
 - Accent: gold `#F4C62B`, used for the event mark rather than body text.
 - University wordmarks use a yellow sun (`#F8CE00`) and green lettering (`#344B21`) following the owner's supplied reference. The public header and workspace share this treatment. Browser tab icons use the owner-supplied college seal, fitted proportionally with transparency preserved.
-- Canvas `#F6F7F3`, white surfaces, primary text `#1D3027`, secondary text `#58655B`.
+- Canvas `#F4F6F2`, white surfaces, primary text `#1D3027`, secondary text `#58655B`.
 - Headings: Bricolage Grotesque; body/UI: DM Sans, loaded through `next/font`.
 - Main type: 32 px page title, 24–28 px section title, 18–21 px card title, 14–15 px body, 12–13 px metadata. Phone sizes adapt to available space.
-- Shared 8/12 px control/card corners, 24 px working gaps, and visible focus states. Motion is limited to interaction feedback and respects reduced motion.
+- Shared 8/12 px control/card corners, 24 px working gaps, and visible focus states. Brief section/dialog entrances, card hover lift, and link feedback respect reduced motion. No motion dependency or looping animation is required.
 
 ## Screens
 
@@ -37,3 +37,11 @@ Public navigation stays compact. Signed-in users share a 248 px sidebar with onl
 Phone audience filters start collapsed to keep events visible. Show/Hide filters controls preserve selections and expose correct expanded state; desktop controls remain visible. Full-detail posters offer a separate zoom dialog with fit/original-size controls, keyboard close/focus management, and a scrollable image. Pre-submit previews show the selected local image and file metadata without uploading it.
 
 Role visibility does not authorize data operations. Supabase policies and the review RPCs remain authoritative. Source imagery and ownership are documented in `IMAGE_SOURCES.md`; the design-reference file remains an owner-supplied local reference.
+
+## October 2026 refresh and rejected revisions
+
+The public home uses the campus photograph beside a forest-green field, a two-line headline, and a gold action. Workspaces use the Taste editorial-greeting direction with the existing PHINMA typography/palette preserved: a sage ground, neutral navigation selection, regular-weight counts, and a centered working column. The public landing headline is deliberately larger than workspace headings. The event board remains the live interaction; there are no invented events, metrics, testimonials, or extra product features.
+
+The organizer’s primary task is preparing an event for review. A rejected card offers **Edit and resubmit**; its saved details, local Philippine times, current poster, and administrator note load into the existing form. The form offers **Cancel revision** and **Resubmit for review**. A pending card explicitly says it remains private until approved; a published card explicitly says editing is locked. The review guide explains Prepare, Review, and Publish. At narrow phone widths, time filters and result counts wrap instead of widening the page, and editable fields use 16px text.
+
+Reusing the existing form and trusted review-RPC pattern keeps the workflow small. A separate editor route would duplicate the form; direct review-state updates would weaken the boundary. The resubmission RPC instead accepts only content and controls the pending reset itself. Existing poster-delete RLS protects linked images, so no wider Storage write policy is needed.

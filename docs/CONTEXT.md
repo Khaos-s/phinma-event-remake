@@ -12,7 +12,7 @@ The source repository was an unfinished Flask/MySQL application. The remake uses
 | --- | --- | --- |
 | Signed-out visitor | `/`, `/events`, `/events/[id]` | Browse and preview published events, open full details, and filter by time, department, course, organizer, and year |
 | Registered member without a privileged grant | `/account` | View own account and browse events |
-| `organizer` | `/organizer` | Submit a pending event for the assigned organization/department and view own submissions |
+| `organizer` | `/organizer` | Submit events, view own submissions, and revise/resubmit own rejected events in the assigned organization |
 | `event_admin` | `/admin` | Read submissions and approve or reject pending events |
 
 Everyone uses `/login`. Roles and organization membership are trusted assignments in the database; no role chooser, editable profile field, or browser state grants permission. RLS, foreign keys, a scope trigger, and role-checking review RPCs enforce permissions. The legacy `cite_organizer` spelling resolves to scoped organizer access for compatibility with existing accounts.
@@ -44,7 +44,7 @@ Use PHINMA green and gold, neutral light surfaces, clear text, and real campus i
 
 ## Current limitations
 
-The university's existing approval process has not been observed in person. Real password sign-in and Storage upload still need an owner-operated check; database role/publication tests use transaction-scoped identities and roll back all fixtures. One organization per organizer account and one course per event are supported. Multi-organization memberships, email notifications, public registration, event editing/resubmission, and enrollment records remain later work. See `LATER.md` before expanding scope.
+The university's existing approval process has not been observed in person. Real password sign-in and Storage upload still need an owner-operated check; database role/publication tests use transaction-scoped identities and roll back all fixtures. One organization per organizer account and one course per event are supported. Own rejected-event revision/resubmission is supported; pending and approved events stay locked. Multi-organization memberships, email notifications, public registration, published-event editing, and enrollment records remain later work. See `LATER.md` before expanding scope.
 
 Read `AUDIT.md` for the 2026-10-23 end-to-end audit. Hosted API signup remains enabled and leaked-password protection disabled; Chrome denied dashboard access, and the connector cannot update Auth settings. Lists are not paginated yet. Do not claim those gaps or real password/upload verification are complete.
 

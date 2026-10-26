@@ -14,7 +14,7 @@ npm run dev
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` using the project's Supabase URL and publishable key. The same two variables must be configured in Vercel. Never put a Supabase secret or service role key in this app.
 
-The six numbered database migrations in `supabase/sql/` are applied in order. All registered users share `/login`. Accounts with trusted grants for `organizer` (including legacy `cite_organizer`) or `event_admin` open their own workspaces; other accounts receive member access at `/account`. The website cannot grant roles. See `docs/ORGANIZER_SETUP.md` for publisher onboarding, `docs/SPEC.md` for the workflow, and `docs/IMAGE_SOURCES.md` for image credits.
+The seven numbered database migrations in `supabase/sql/` are applied in order. All registered users share `/login`. Accounts with trusted grants for `organizer` (including legacy `cite_organizer`) or `event_admin` open their own workspaces; other accounts receive member access at `/account`. The website cannot grant roles. See `docs/ORGANIZER_SETUP.md` for publisher onboarding, `docs/SPEC.md` for the workflow, and `docs/IMAGE_SOURCES.md` for image credits.
 
 ## Checks
 
@@ -23,6 +23,8 @@ npm run lint
 npm run build
 npm test
 ```
+
+With Playwright available in the environment (or on `NODE_PATH`) and Microsoft Edge installed, run `node tests/organizer-flow.mjs` against `npm run dev`. `TEST_BASE_URL` can point it at a running build. Organizer writes/auth are intercepted browser fixtures; public layout checks read real published data. It covers rejected-event revisions, retained/replaced posters, failed saves/cleanup, cancellation, phone layouts, and reduced motion without creating hosted events. Run `supabase/tests/rejected_event_resubmission.sql` alongside the other SQL suites to verify database permissions; its fixtures roll back.
 
 The university department/course catalog is sourced in `docs/ACADEMIC_REFERENCE.md`. The original CITE test assignment is preserved. The organizer form includes a local poster preview; phone filters collapse; full-detail posters can be zoomed. Student rosters and email notifications are later work.
 

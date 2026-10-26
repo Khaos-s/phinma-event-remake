@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { eventStage, formatPhilippineTime, matchesEventFilters, philippineTimeToIso } from "./events.ts";
+import { eventStage, formatPhilippineTime, matchesEventFilters, philippineTimeInput, philippineTimeToIso } from "./events.ts";
 
 const schedule = {
   starts_at: "2026-10-22T01:00:00.000Z",
@@ -24,6 +24,12 @@ test("form times are interpreted in Philippine time", () => {
   assert.equal(philippineTimeToIso("2026-10-22T09:00"), schedule.starts_at);
   assert.equal(philippineTimeToIso("not a date"), null);
   assert.equal(philippineTimeToIso("2026-02-30T09:00"), null);
+});
+
+test("revision inputs show Philippine time across UTC date and year boundaries", () => {
+  assert.equal(philippineTimeInput(schedule.starts_at), "2026-10-22T09:00");
+  assert.equal(philippineTimeInput("2026-12-31T18:30:00Z"), "2027-01-01T02:30");
+  assert.equal(philippineTimeInput("invalid"), "");
 });
 
 test("calendar filters combine time, audience, and search without hiding all-year events", () => {

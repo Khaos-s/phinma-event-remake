@@ -7,11 +7,12 @@
 3. The poster uploads to an own private path. Inserting the event creates a pending submission.
 4. The administrator's queue checks for submissions every 30 seconds while open and can be refreshed manually.
 5. Approval changes pending to approved in one database operation. The event is then eligible for public reads, including its image.
-6. Rejection changes pending to rejected and requires a reason visible to the organizer. A rejected organizer can submit a new event; editing and resubmission are not implemented.
+6. Rejection changes pending to rejected and requires a reason visible to the organizer. The original organizer can use **Edit and resubmit** while still assigned to the event’s organization. The form loads the saved content and Philippine local times, shows the review note, and keeps the saved poster unless a replacement is selected. Cancel releases the local preview and leaves the stored event unchanged.
+7. **Resubmit for review** sends the content to `resubmit_event`. It atomically updates only the caller’s own rejected event in their current organization, sets pending, and clears the old rejection reason/reviewer/time. It preserves the event ID, publisher, creator, and creation timestamp. A second request or a stale request against a pending/approved event fails. The event remains private until a new administrator approval.
 
-The organizer can refresh submissions manually; the page also reloads status, notes, and signed posters every 60 seconds. A failed insert attempts private poster cleanup and reports a cleanup failure explicitly. Administrator review supports full-size poster fit/zoom.
+The organizer can refresh submissions manually; the page also reloads status, notes, and signed posters every 60 seconds. A definite database rejection of an insert/resubmission attempts removal of its newly uploaded poster. A successful revision with a replacement attempts removal of the previous poster only after the database save. Storage denies deletion of a poster still linked to an event. Cleanup failure is reported without undoing a successful resubmission. Unknown/transport failures retain the uploaded poster because a request may still commit; the organizer must refresh before retrying. This may leave a private orphan if the request never completes. Administrator review supports full-size poster fit/zoom.
 
-Only the administrator can make the review transition. There is one approval stage. The dashboard status label “Published” maps to the stored `approved` value; it is not a separate workflow state.
+Only the administrator can approve or reject. The organizer’s trusted resubmission RPC can only request a fresh pending review. There is one approval stage. The dashboard status label “Published” maps to the stored `approved` value; it is not a separate workflow state. Pending and published cards explicitly explain their locked state.
 
 ## Time and audience
 

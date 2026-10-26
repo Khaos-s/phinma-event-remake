@@ -23,6 +23,7 @@ The primary user is an authorized event organizer assigned to a trusted organiza
 7. As a visitor, I want to view approved events and filter them by Upcoming, Ongoing, or Past without signing in.
 8. As a visitor, I want department, course, organizer, and year filters, starting with all options selected.
 9. As a visitor, I want to click an event for a quick-view popup, then open its full details at a shareable event URL.
+10. As an organizer, I want to revise my own rejected event using the administrator’s note and resubmit it for a fresh review, keeping or replacing its poster.
 
 ## Screens
 
@@ -65,7 +66,7 @@ One shared Supabase Auth email and password form for all registered accounts. An
 - Student roster and registration features from the legacy application.
 - Multiple organization memberships per account, cross-department/multiple-course audiences, and a website role-assignment interface.
 - Email notifications and a separate council logo asset.
-- Editing or resubmitting an event after review; a rejected organizer may submit a new event.
+- Editing pending or already published events. Rejected events may be revised and resubmitted by their original organizer within their current assigned organization.
 
 ## Organizer and mobile usability
 
