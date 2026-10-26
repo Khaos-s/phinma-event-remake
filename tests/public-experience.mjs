@@ -68,6 +68,12 @@ try {
   assert.equal(await page.locator(".site-brand").innerText(), "");
   assert.equal(await page.getByRole("link", { name: "PHINMA UI Event home", exact: true }).getAttribute("href"), "/");
   assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).position), "sticky");
+  const header = await page.locator('.site-header').evaluate(element => {
+    const boxes = ['.site-brand', '.desktop-nav', '.header-actions'].map(selector => element.querySelector(selector).getBoundingClientRect());
+    return { height: element.getBoundingClientRect().height, centers: boxes.map(box => box.y + box.height / 2) };
+  });
+  assert.ok(header.height <= 82, 'Public navigation occupies one row');
+  assert.ok(Math.max(...header.centers) - Math.min(...header.centers) <= 1, 'Logo, links and account actions share one row');
   assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(255, 255, 255)");
   assert.equal(await page.locator(".public-discovery").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(244, 246, 242)");
   assert.equal(await page.locator(".site-footer").evaluate(element => getComputedStyle(element).borderTopColor), "rgb(244, 198, 43)");
@@ -85,9 +91,11 @@ try {
     assert.equal(await page.locator(selector).evaluate(element => element === document.activeElement), true, `Keyboard order: ${selector}`);
   }
   await page.getByRole("button", { name: "Hide filters", exact: true }).click();
-  for (const width of [1280, 1101, 390, 320]) {
+  for (const width of [1440, 1280, 1101, 1100, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.locator("#event-search").isVisible(), true, "Search stays visible with filters closed");
+    assert.equal(await page.locator(".desktop-nav").isVisible(), width > 1100);
+    assert.equal(await page.getByRole("button", { name: "Open navigation", exact: true }).isVisible(), width <= 1100);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     const landing = await page.locator('.campus-hero').evaluate(element => ({ bottom: element.getBoundingClientRect().bottom, viewport: innerHeight }));
     assert.ok(Math.abs(landing.bottom - landing.viewport) <= 1, `Landing fills the first screen at ${width}`);

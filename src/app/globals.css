@@ -61,7 +61,7 @@
   --font-sans: var(--font-body), "Segoe UI", sans-serif;
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 160px; }
+html { scroll-behavior: smooth; scroll-padding-top: 100px; }
 body { background: var(--background); color: var(--foreground); font-family: var(--font-body), "Segoe UI", sans-serif; font-size: 15px; line-height: 1.6; }
 h1, h2, h3, .brand-lockup { font-family: var(--font-heading), "Segoe UI", sans-serif; font-weight: 600; letter-spacing: -0.025em; }
 button, input, select, textarea { font-family: inherit; }
@@ -76,10 +76,10 @@ button:disabled { cursor: wait; }
 .skip-link { position: fixed; top: 8px; left: 16px; z-index: 100; transform: translateY(-180%); padding: 10px 18px; border-radius: 6px; background: var(--card); color: var(--primary); }
 .skip-link:focus { transform: translateY(0); }
 .site-header { position: sticky; top: 0; z-index: 20; background: var(--card); border-bottom: 1px solid var(--border); border-top: 4px solid #006341; }
-.header-main { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 16px; }
+.header-main { display: flex; align-items: center; justify-content: space-between; min-height: 72px; gap: 20px; }
 .site-brand { display: flex; align-items: center; flex-shrink: 0; }
 .university-logo { display: inline-block; flex: none; width: 110px; height: 55px; background: linear-gradient(to bottom, #f8ce00 0 58%, #344b21 58% 100%); mask: url("/images/phinma-ui-logo-white.png") center / contain no-repeat; }
-.desktop-nav { display: flex; align-items: center; gap: 8px; }
+.desktop-nav { display: flex; align-items: center; gap: 6px; margin-inline: auto; }
 .nav-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; color: var(--muted-foreground); font-weight: 500; }
 .nav-link { padding-inline: 9px; border-radius: 6px; }
 .nav-link:hover, .nav-link[aria-current="page"] { color: var(--primary); background: var(--secondary); }
@@ -99,8 +99,8 @@ button:disabled { cursor: wait; }
 .public-discovery :is(button, input, select), .public-actions :is(button, a), .site-header :is(button, a), .site-footer a { min-height: 44px; }
 .public-discovery :is(input, select) { font-size: 16px; }
 .public-discovery section { scroll-margin-top: 24px; }
-/* The closed public header is 134px on desktop and 77px on mobile. */
-.campus-hero { --ring: var(--gold); position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: calc(100svh - 134px); background: var(--forest); color: white; padding: 32px 0 24px; }
+/* The single-row public header is 77px including its borders. */
+.campus-hero { --ring: var(--gold); position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: calc(100svh - 77px); background: var(--forest); color: white; padding: 32px 0 24px; }
 .campus-hero-content { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 36px; padding-block: 36px; }
 .campus-hero-inner { text-align: center; }
 .campus-hero-copy { margin-inline: auto; max-width: 1120px; }
@@ -488,7 +488,6 @@ button:disabled { cursor: wait; }
   .public-site-link { display: none; }
 }
 @media (max-width: 960px) {
-  .desktop-nav { gap: 18px; }
   .board-hero-copy { padding: 28px; }
   .event-board-layout { grid-template-columns: 200px minmax(0, 1fr); gap: 18px; }
   .event-grid { grid-template-columns: 1fr; }
@@ -505,8 +504,6 @@ button:disabled { cursor: wait; }
   .page-container { width: calc(100% - 36px); }
   .header-main { min-height: 72px; }
   .university-logo { width: 82px; height: 41px; }
-  .desktop-nav { display: none; }
-  .mobile-menu-toggle { display: inline-grid; }
   .public-main { padding-block: 22px 36px; }
   .board-hero { grid-template-columns: 1fr; }
   .board-hero-copy { padding: 26px 24px; }
@@ -740,14 +737,9 @@ button:disabled { cursor: wait; }
 
 @media (max-width: 420px) { .footer-main { grid-template-columns: minmax(0, 1fr); } }
 
-/* Campus navigation separates discovery from account actions. */
+/* One header row holds the campus links and account actions. */
 .header-actions, .desktop-account { display: flex; align-items: center; gap: 12px; }
-.header-actions { margin-left: auto; }
-.header-navigation { border-top: 1px solid var(--border); }
-.header-navigation-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 52px; }
-.header-navigation .nav-link { border-radius: 0; min-height: 52px; padding-inline: 18px; border-bottom: 3px solid transparent; }
-.header-navigation .nav-link[aria-current="page"] { border-bottom-color: var(--primary); background: var(--muted); }
-.header-navigation .university-link { padding-inline: 0; font-size: 12px; }
+.header-actions { flex-shrink: 0; }
 .navigation-group-label { padding-block: 12px 4px; font-size: 12px; color: var(--muted-foreground); }
 .mobile-nav > a { display: flex; align-items: center; gap: 12px; padding-inline: 12px; border-radius: 6px; }
 .mobile-nav > a[aria-current="page"] { background: var(--muted); color: var(--primary); font-weight: 600; }
@@ -766,10 +758,14 @@ button:disabled { cursor: wait; }
 .event-page-navigation > div { display: flex; align-items: center; gap: 24px; font-size: 13px; color: var(--muted-foreground); }
 .event-page-navigation > div > a { display: inline-flex; align-items: center; }
 .event-page-navigation a:hover { color: var(--primary); }
-@media (min-width: 761px) { .header-navigation .desktop-nav { display: flex; } .mobile-nav { display: none; } }
+@media (min-width: 1101px) { .mobile-nav { display: none; } }
+@media (max-width: 1100px) {
+  .desktop-nav, .desktop-account { display: none; }
+  .mobile-menu-toggle { display: inline-grid; }
+  .header-actions { margin-left: auto; }
+}
 @media (max-width: 760px) {
   html { scroll-padding-top: 100px; }
-  .header-navigation, .desktop-account { display: none; }
   .header-actions { gap: 0; }
   .workspace-breadcrumb > a, .workspace-breadcrumb > svg { display: none; }
   .workspace-sidebar { padding-top: 18px; }

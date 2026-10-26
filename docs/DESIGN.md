@@ -78,3 +78,7 @@ The navigation refresh separates public destinations into a second header row an
 The homepage hero fills the initial viewport below the closed public navigation, using the real campus photograph, a larger university identity, and the existing search/filter form. The footer of the hero links directly to the event board. Its minimum height follows the desktop/mobile header sizes; short screens and expanded audience filters grow naturally without clipping controls. The event directory and protected workspaces retain their existing layouts. Existing motion and reduced-motion preferences apply.
 
 The public navigation header displays only the university logo, with its accessible home-link label preserved. The repeated text wordmark and divider beside it are removed; the homepage hero retains the large platform title.
+
+## Single-row navigation correction — 27 October 2026
+
+The public header combines the university logo, primary page links, theme control and account actions in one 72px row, plus its 5px borders. The previous second navigation row is removed. At widths of 1100px and below, links and account actions move into the existing menu; the logo, theme control and menu toggle remain in one row. The full-screen homepage and anchor offsets follow the reduced header height.
