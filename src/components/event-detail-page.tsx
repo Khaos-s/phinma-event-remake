@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { LoadingPanel } from "@/components/loading-panel";
 import { EventDetails } from "@/components/event-details";
 import { EventCard } from "@/components/event-card";
 import { SiteHeader } from "@/components/site-header";
@@ -57,5 +58,5 @@ export function EventDetailPage({ id }: { id: string }) {
     return () => { active = false; clearInterval(timer); };
   }, [client, id]);
 
-  return <><SiteHeader /><main ref={main} id="main-content" className="page-container public-main event-detail-page"><Link href="/events" className="back-link"><ArrowLeft size={16} aria-hidden="true" />All events</Link>{loading ? <p className="loading-panel" role="status">Loading event details…</p> : error ? <p role="alert" className="form-error">{error}</p> : event ? <><EventDetails event={event} imageUrl={imageUrl} now={now} />{relatedError && <p className="action-feedback" role="status">{relatedError}</p>}{related.events.length > 0 && <section className="related-events" aria-labelledby="related-title" data-reveal><div className="section-heading"><h2 id="related-title">{related.heading}</h2></div><div className="event-grid">{related.events.map(item => <EventCard key={item.id} event={item} imageUrl={relatedImages[item.id]} stage={eventStage(item, now)} href={`/events/${item.id}`} />)}</div></section>}</> : <section className="calendar-empty"><h1>Event not available</h1><p>This event does not exist or is not published.</p><Link className="primary-link" href="/events">Browse published events</Link></section>}</main><SiteFooter /></>;
+  return <><SiteHeader /><main ref={main} id="main-content" className="page-container public-main event-detail-page"><Link href="/events" className="back-link"><ArrowLeft size={16} aria-hidden="true" />All events</Link>{loading ? <LoadingPanel>Loading event details…</LoadingPanel> : error ? <p role="alert" className="form-error">{error}</p> : event ? <><EventDetails event={event} imageUrl={imageUrl} now={now} />{relatedError && <p className="action-feedback" role="status">{relatedError}</p>}{related.events.length > 0 && <section className="related-events" aria-labelledby="related-title" data-reveal><div className="section-heading"><h2 id="related-title">{related.heading}</h2></div><div className="event-grid">{related.events.map(item => <EventCard key={item.id} event={item} imageUrl={relatedImages[item.id]} stage={eventStage(item, now)} href={`/events/${item.id}`} />)}</div></section>}</> : <section className="calendar-empty"><h1>Event not available</h1><p>This event does not exist or is not published.</p><Link className="primary-link" href="/events">Browse published events</Link></section>}</main><SiteFooter /></>;
 }

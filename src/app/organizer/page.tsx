@@ -2,17 +2,22 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ImagePlus, LockKeyhole, PencilLine, RefreshCw, Send, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, CalendarDays, Check, Eye, ImagePlus, LockKeyhole, PencilLine, Plus, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { EventCard } from "@/components/event-card";
 import { WorkspaceShell } from "@/components/workspace-shell";
+import { useFeedbackToasts } from "@/components/toast-provider";
+import { LoadingPanel } from "@/components/loading-panel";
+import { EventStatus } from "@/components/event-status";
+import { OrganizerEventPreview, type OrganizerPreview } from "@/components/organizer-event-preview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { EVENT_SELECT, EventRow, IMAGE_BUCKET, philippineTimeInput, philippineTimeToIso, signedImageUrls } from "@/lib/events";
-import { colleges } from "@/lib/academics";
+import { EVENT_SELECT, EventRow, IMAGE_BUCKET, eventStage, formatPhilippineTime, philippineTimeInput, philippineTimeToIso, signedImageUrls, yearLabel, type PublicEvent } from "@/lib/events";
+import { colleges, collegeLabel } from "@/lib/academics";
 import { posterExtension } from "@/lib/posters";
 import { createClient } from "@/lib/supabase/client";
 import { roleHome } from "@/lib/roles";
@@ -33,7 +38,15 @@ export default function OrganizerPage() {
   const [notice, setNotice] = useState("");
   const [fetchError, setFetchError] = useState("");
   const [editing, setEditing] = useState<EventRow | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [filter, setFilter] = useState<"all" | EventRow["status"]>("all");
+  const [draft, setDraft] = useState<PublicEvent | null>(null);
+  const [previewNow, setPreviewNow] = useState(() => Date.now());
+  const [selectedPreview, setSelectedPreview] = useState<OrganizerPreview | null>(null);
+  useFeedbackToasts(error, notice);
   const formRef = useRef<HTMLFormElement>(null);
+  const editorTrigger = useRef<HTMLElement | null>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
   const submitting = useRef(false);
   const loadRevision = useRef(0);
 
@@ -66,7 +79,7 @@ export default function OrganizerPage() {
       await loadEvents();
       if (active) {
         setLoading(false);
-        refreshTimer = setInterval(() => void loadEvents(), 60_000);
+        refreshTimer = setInterval(() => { setPreviewNow(Date.now()); void loadEvents(); }, 60_000);
       }
     }
     void checkAccess();
@@ -74,15 +87,39 @@ export default function OrganizerPage() {
   }, [account, loadEvents, router]);
 
   function reviseEvent(item: EventRow | null) {
-    setEditing(item);
-    setPosterPreview(null);
-    setError("");
-    setNotice("");
+    if (!editorOpen || editing?.id !== item?.id) {
+      editorTrigger.current = document.activeElement as HTMLElement | null;
+      setEditorOpen(true);
+      setEditing(item);
+      setDraft(null);
+      setPosterPreview(null);
+      setError("");
+      setNotice("");
+    }
     requestAnimationFrame(() => {
       const field = formRef.current?.querySelector<HTMLInputElement>("#title");
       field?.focus({ preventScroll: true });
+      if (formRef.current) capturePreview(formRef.current, item);
       formRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
     });
+  }
+
+  function closeEditor() {
+    setEditorOpen(false); setEditing(null); setPosterPreview(null); setDraft(null); setError("");
+    requestAnimationFrame(() => { if (editorTrigger.current?.isConnected) editorTrigger.current.focus({ preventScroll: true }); else heading.current?.focus(); });
+  }
+
+  function capturePreview(form: HTMLFormElement, source: EventRow | null = editing) {
+    if (!organization) return;
+    const fields = new FormData(form);
+    const startsAt = philippineTimeToIso(String(fields.get("starts_at") ?? ""));
+    const endsAt = philippineTimeToIso(String(fields.get("ends_at") ?? ""));
+    const title = String(fields.get("title") ?? "").trim();
+    const description = String(fields.get("description") ?? "").trim();
+    const course = String(fields.get("course") ?? "");
+    const year = String(fields.get("target_year") ?? "");
+    if (!title || !description || !startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt) || !courses.some(item => item.code === course) || !["", "1", "2", "3", "4"].includes(year)) { setDraft(null); return; }
+    setDraft({ id: source?.id ?? "draft", title, description, starts_at: startsAt, ends_at: endsAt, course, target_year: year ? Number(year) : null, organization, organization_id: organization.id, department: organization.department, image_path: source?.image_path ?? "", status: source?.status ?? "pending" });
   }
 
   async function submitEvent(event: FormEvent<HTMLFormElement>) {
@@ -160,6 +197,9 @@ export default function OrganizerPage() {
         const wasRevision = Boolean(editing);
         form.reset();
         setEditing(null);
+        setEditorOpen(false);
+        setDraft(null);
+        setFilter("pending");
         setPosterPreview(null);
         setNotice(`${wasRevision ? "Resubmitted" : "Submitted"} — pending administrator review. Your event stays private until approved.`);
         if (previousPath && previousPath !== path) {
@@ -167,6 +207,7 @@ export default function OrganizerPage() {
           if (cleanupError) setError(`Your revision was submitted, but the previous poster could not be removed. Contact the administrator. ${cleanupError.message}`);
         }
         await loadEvents();
+        heading.current?.focus({ preventScroll: true });
       }
     } catch (cause) {
       setError(`${saved ? "Submitted, but a follow-up step failed." : "The request was interrupted. Refresh submissions before retrying; the poster was kept because the save may still complete."} ${cause instanceof Error ? cause.message : "Please try again."}`);
@@ -176,18 +217,23 @@ export default function OrganizerPage() {
     }
   }
 
-  if (account.error) return <WorkspaceShell title="Create an event"><p className="form-error" role="alert">{account.error}</p></WorkspaceShell>;
-  if (loading || account.loading || account.role !== "organizer" || !organization) return <WorkspaceShell title="Create an event"><p className="loading-panel" role="status">Checking organizer access…</p></WorkspaceShell>;
+  if (account.error) return <WorkspaceShell title="My events"><p className="form-error" role="alert">{account.error}</p></WorkspaceShell>;
+  if (loading || account.loading || account.role !== "organizer" || !organization) return <WorkspaceShell title="My events"><LoadingPanel>Checking organizer access…</LoadingPanel></WorkspaceShell>;
+
+  const visible = filter === "all" ? events : events.filter(item => item.status === filter);
+  const previewImage = posterPreview?.url ?? (editing ? imageUrls[editing.id] : undefined);
 
   return (
-    <WorkspaceShell title={editing ? "Revise an event" : "Create an event"}>
-        <div className="page-heading"><div><h1>{editing ? "Make it ready." : "Bring campus together."}</h1><p>{editing ? "Use the review note to revise your event and send it for another review." : "Create an event, follow its review, and share it with your community."}</p></div><span className="role-badge"><ShieldCheck size={14} aria-hidden="true" />{organization.name}</span></div>
+    <WorkspaceShell title="My events">
+        <div className="page-heading organizer-heading"><div><h1 ref={heading} tabIndex={-1}>My events</h1><p>Prepare your next campus event and follow every submission in one place.</p><span className="organizer-publisher"><ShieldCheck size={15} aria-hidden="true" />{organization.name} · {collegeLabel(organization.department)}</span></div><div className="form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => void loadEvents()}><RefreshCw size={15} aria-hidden="true" />Refresh submissions</Button>{!editorOpen && <Button type="button" onClick={() => { reviseEvent(null); }}><Plus size={17} aria-hidden="true" />Create event</Button>}</div></div>
         <div className="summary-strip"><div><span>Pending review</span><strong>{fetchError ? "—" : events.filter(item => item.status === "pending").length}</strong></div><div><span>Published</span><strong>{fetchError ? "—" : events.filter(item => item.status === "approved").length}</strong></div><div><span>Rejected</span><strong>{fetchError ? "—" : events.filter(item => item.status === "rejected").length}</strong></div></div>
-        <div className="organizer-layout">
+        {error && <p role="alert" className="form-error">{error}</p>}
+        {notice && <p role="status" className="success-notice"><Check size={17} aria-hidden="true" />{notice}</p>}
+        {editorOpen && <section className="organizer-composer" aria-labelledby="editor-title"><div className="panel-section-heading"><div><h2 id="editor-title">{editing ? "Revise your event" : "Create an event"}</h2><p className="text-sm text-muted-foreground">{editing ? "Use the administrator’s note and resubmit for another review." : "Add your details, then check how they’ll look on the event board."}</p></div><Button type="button" variant="ghost" disabled={busy} onClick={closeEditor}><X size={17} aria-hidden="true" />{editing ? "Cancel revision" : "Cancel creation"}</Button></div><div className="organizer-layout organizer-editor-layout">
           <Card className="event-form-card">
             <CardHeader><CardTitle>{editing ? "Revise your submission" : "Event details"}</CardTitle><p className="text-sm text-muted-foreground">{editing ? "Your changes will return this event to the administrator’s queue." : "Tell the community what’s happening."}</p></CardHeader>
             <CardContent>
-              <form key={editing?.id ?? "new"} ref={formRef} onSubmit={submitEvent} className="space-y-5 revision-form" aria-busy={busy}>
+              <form key={editing?.id ?? "new"} ref={formRef} onSubmit={submitEvent} onChange={event => { capturePreview(event.currentTarget); }} className="space-y-5 revision-form" aria-busy={busy}>
                 <fieldset disabled={busy} className="space-y-5">
                 {editing && <div className="revision-note"><PencilLine size={18} aria-hidden="true" /><div><strong>Administrator’s review note</strong><p>{editing.rejection_reason}</p><span>Revise the details below. The event stays private during review.</span></div></div>}
                 <div className="space-y-2"><Label htmlFor="title">Event name</Label><Input id="title" name="title" maxLength={200} required defaultValue={editing?.title ?? ""} placeholder="Give your event a clear name" /></div>
@@ -209,27 +255,27 @@ export default function OrganizerPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">Enter both times in Philippine time (PHT).</p>
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2"><Label htmlFor="department">Department</Label><Input id="department" value={organization.department} readOnly /></div>
-                  <div className="space-y-2"><Label htmlFor="course">Course</Label><select id="course" name="course" required defaultValue={editing?.course ?? courses[0]?.code ?? ""} className="course-select">{courses.map(item => <option key={item.code} value={item.code}>{item.name}</option>)}</select></div>
+                  <div className="space-y-2"><Label htmlFor="department">Department</Label><Input id="department" value={collegeLabel(organization.department)} readOnly /></div>
+                  <div className="space-y-2"><Label htmlFor="course">Course</Label><select id="course" name="course" required defaultValue={editing?.course ?? courses[0]?.code ?? ""} className="course-select">{courses.map(item => <option key={item.code} value={item.code}>{item.code} · {item.name}</option>)}</select></div>
                 </div>
                 <div className="space-y-2"><Label htmlFor="target_year">For which year?</Label><select id="target_year" name="target_year" defaultValue={editing?.target_year ?? ""} className="course-select"><option value="">All college years</option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
-                {error && <p role="alert" className="form-error">{error}</p>}
-                {notice && <p role="status" className="success-notice"><Check size={17} aria-hidden="true" />{notice}</p>}
-                <div className="form-submit-row"><span>Approval publishes your event automatically.</span><div className="form-actions">{editing && <Button type="button" variant="outline" onClick={() => reviseEvent(null)}>Cancel revision</Button>}<Button type="submit"><Send size={15} aria-hidden="true" />{busy ? "Submitting…" : editing ? "Resubmit for review" : "Submit for approval"}</Button></div></div>
+                <div className="form-submit-row"><span>Approval publishes your event automatically.</span><div className="form-actions"><Button type="submit" loading={busy}>{!busy && <Send size={15} aria-hidden="true" />}{busy ? "Submitting…" : editing ? "Resubmit for review" : "Submit for approval"}</Button></div></div>
                 </fieldset>
               </form>
             </CardContent>
           </Card>
 
-          <section aria-labelledby="submissions-title" id="submissions" className="submission-rail">
-            <div className="review-guide"><div className="panel-section-heading"><h2>From idea to event</h2><ShieldCheck size={19} aria-hidden="true" /></div><ol className="review-steps"><li><strong>Prepare</strong><span>Add your poster, schedule, and audience.</span></li><li><strong>Review</strong><span>Pending events stay private. Revise a rejected event using the review note.</span></li><li><strong>Publish</strong><span>Administrator approval puts your event on the board.</span></li></ol></div>
-            <div className="panel-section-heading"><h2 id="submissions-title">My submissions</h2><span>{fetchError ? "Unavailable" : events.length}</span></div>
-            <Button type="button" variant="outline" onClick={() => void loadEvents()}><RefreshCw size={15} aria-hidden="true" />Refresh submissions</Button>
-            {fetchError ? <p role="alert" className="form-error">{fetchError}</p> : events.length ? events.map((item) => <EventCard key={item.id} event={item} imageUrl={imageUrls[item.id]}>
-              {item.status === "rejected" ? <div className="submission-action"><p className="rejection-note"><strong>Review note:</strong> {item.rejection_reason}</p><Button type="button" variant="outline" disabled={busy} onClick={() => reviseEvent(item)}><PencilLine size={15} aria-hidden="true" />Edit and resubmit</Button></div> : <p className="submission-status"><LockKeyhole size={15} aria-hidden="true" />{item.status === "pending" ? "Pending administrator review · private until approved" : "Published · editing is locked"}</p>}
-            </EventCard>) : <Card><CardContent className="empty-state"><Send size={27} strokeWidth={1.5} aria-hidden="true" /><h3>Your first event starts here</h3><p>Submitted events appear here with their review status.</p></CardContent></Card>}
-          </section>
-        </div>
+          <aside className="organizer-live-preview" aria-labelledby="live-preview-title" inert={busy}><div className="panel-section-heading"><h3 id="live-preview-title">On the event board</h3><Eye size={18} aria-hidden="true" /></div><p className="preview-explanation">A private preview of the card visitors will see after approval. Your poster and wording update as you edit.</p>{draft ? <EventCard event={draft} imageUrl={previewImage} stage={eventStage(draft, previewNow)} onPreview={() => setSelectedPreview({ event: draft, imageUrl: previewImage, now: previewNow, view: "details" })} /> : <div className="organizer-preview-empty"><Eye size={27} aria-hidden="true" /><h4>Your event preview starts here</h4><p>Add an event name, description, and a valid start and end time to see your card.</p><span>Your selected poster will appear in the preview.</span></div>}<p className="organizer-preview-privacy"><LockKeyhole size={14} aria-hidden="true" />Previewing does not upload or publish your event.</p></aside>
+        </div></section>}
+        <section aria-labelledby="submissions-title" id="submissions" className="organizer-submissions"><div className="panel-section-heading"><div><h2 id="submissions-title">Your submissions</h2><p className="text-sm text-muted-foreground">Only rejected events can be edited. Pending and published events stay locked.</p></div><span role="status">{fetchError ? "Unavailable" : `${visible.length} events`}</span></div>
+          <div className="organizer-status-filters event-tabs" role="group" aria-label="My event status">{([{ value: "all", label: "All" }, { value: "pending", label: "Pending" }, { value: "approved", label: "Published" }, { value: "rejected", label: "Rejected" }] as const).map(({ value, label }) => <button key={value} type="button" className={filter === value ? "selected" : ""} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>
+          {fetchError ? <p role="alert" className="form-error">{fetchError}</p> : visible.length ? <div className="organizer-submission-list">{visible.map(item => <article key={item.id} className="organizer-submission-row"><div className="organizer-submission-poster">{imageUrls[item.id] ? (
+            // Signed poster URLs need to stay outside Next's public image cache.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrls[item.id]} alt={`Poster for ${item.title}`} loading="lazy" />
+          ) : <span>Poster unavailable</span>}</div><div className="organizer-submission-content"><div className="organizer-submission-title"><h3>{item.title}</h3><EventStatus status={item.status} /></div><p className="organizer-submission-audience">{item.course} · {yearLabel(item.target_year)}</p><p className="organizer-submission-schedule"><CalendarDays size={15} aria-hidden="true" /><span>{formatPhilippineTime(item.starts_at)} – {formatPhilippineTime(item.ends_at)} PHT</span></p>{item.status === "rejected" ? <p className="rejection-note"><strong>Review note:</strong> {item.rejection_reason}</p> : <p className="submission-status"><LockKeyhole size={14} aria-hidden="true" />{item.status === "pending" ? "Pending administrator review · private until approved" : "Published · editing is locked"}</p>}<div className="organizer-row-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => setSelectedPreview({ event: item, imageUrl: imageUrls[item.id], now: previewNow, view: "card" })}><Eye size={16} aria-hidden="true" />Preview event</Button>{item.status === "rejected" && <Button type="button" variant="outline" disabled={busy} onClick={() => { reviseEvent(item); }}><PencilLine size={15} aria-hidden="true" />Edit and resubmit</Button>}{item.status === "approved" && <Link href={`/events/${item.id}`} className="text-link">View published event<ArrowUpRight size={15} aria-hidden="true" /></Link>}</div></div></article>)}</div> : <Card><CardContent className="empty-state"><CalendarDays size={28} strokeWidth={1.5} aria-hidden="true" /><h3>{events.length ? "No events in this view" : "Your first event starts here"}</h3><p>{events.length ? "Choose another status to see your other submissions." : "Create your first event to prepare its poster, preview the announcement, and send it for review."}</p>{!events.length && !editorOpen && <Button type="button" variant="outline" onClick={() => { reviseEvent(null); }}><Plus size={16} aria-hidden="true" />Create your first event</Button>}</CardContent></Card>}
+        </section>
+        {selectedPreview && <OrganizerEventPreview preview={selectedPreview} onClose={() => setSelectedPreview(null)} />}
     </WorkspaceShell>
   );
 }

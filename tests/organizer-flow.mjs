@@ -1,17 +1,17 @@
 // UI fixtures only: hosted authorization is covered separately by the rolled-back SQL tests.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const base = process.env.TEST_BASE_URL || 'http://localhost:3000';
 const owner = '10000000-0000-4000-8000-000000000001';
 const organization = { id: '20000000-0000-4000-8000-000000000001', name: 'CITE Council', department: 'College of Information Technology' };
-const poster = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jD1cAAAAASUVORK5CYII=', 'base64');
+const poster = await readFile('public/images/phinma-students.jpg');
 const original = {
   id: '30000000-0000-4000-8000-000000000001', created_by: owner, organization_id: organization.id, organization,
   title: 'Fixture: CITE campus workshop', description: 'Private browser fixture for revision checks.',
-  image_path: `${owner}/original.png`, starts_at: '2026-12-31T18:30:00Z', ends_at: '2026-12-31T19:30:00Z',
+  image_path: `${owner}/original.jpg`, starts_at: '2026-12-31T18:30:00Z', ends_at: '2026-12-31T19:30:00Z',
   department: organization.department, course: 'BSIT', target_year: 2, status: 'rejected',
   rejection_reason: 'Please clarify the workshop schedule.', created_at: '2026-10-26T00:00:00Z',
 };
@@ -50,8 +50,8 @@ async function fixture(browser, options = {}) {
       rows.push({ ...original, ...data, id: '30000000-0000-4000-8000-000000000004', status: 'pending', rejection_reason: null });
       return route.fulfill({ status: 201 });
     }
-    if (path.startsWith('/storage/v1/object/sign/') && request.method() === 'POST') return json({ signedURL: `/object/sign/event-images/${owner}/fixture.png?token=fixture` });
-    if (path.startsWith('/storage/v1/object/sign/')) return route.fulfill({ contentType: 'image/png', body: poster });
+    if (path.startsWith('/storage/v1/object/sign/') && request.method() === 'POST') return json({ signedURL: `/object/sign/event-images/${owner}/fixture.jpg?token=fixture` });
+    if (path.startsWith('/storage/v1/object/sign/')) return route.fulfill({ contentType: 'image/jpeg', body: poster });
     if (path === '/storage/v1/object/event-images' && request.method() === 'DELETE') {
       calls.push({ action: 'remove', paths: request.postDataJSON().prefixes });
       return options.failCleanup ? json({ message: 'Fixture: cleanup unavailable' }, 500) : json([]);
@@ -66,7 +66,7 @@ async function fixture(browser, options = {}) {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(`${base}${options.role === 'event_admin' ? '/admin' : options.role === 'member' ? '/account' : '/organizer'}`);
-  if (options.role) await page.getByRole('heading', { name: options.role === 'event_admin' ? 'Review events' : 'University profile', exact: true }).waitFor();
+  if (options.role) await page.getByRole('heading', { name: options.role === 'event_admin' ? 'Manage events' : 'University profile', exact: true }).waitFor();
   else await page.getByRole('button', { name: 'Edit and resubmit' }).waitFor();
   return { page, context, calls, errors };
 }
@@ -91,7 +91,7 @@ async function edit(page) {
       await page.getByText('Published · editing is locked', { exact: true }).waitFor();
       await edit(page);
       if (options.replacement) {
-        await page.locator('#image').setInputFiles({ name: 'replacement.png', mimeType: 'image/png', buffer: poster });
+        await page.locator('#image').setInputFiles({ name: 'replacement.jpg', mimeType: 'image/jpeg', buffer: poster });
         await page.getByAltText('Selected event poster preview').waitFor();
       }
       await page.getByRole('button', { name: 'Resubmit for review' }).click();
@@ -102,7 +102,7 @@ async function edit(page) {
         assert.equal(await page.locator('#title').inputValue(), 'Fixture: Revised workshop');
         if (options.uncertainSave) {
           await page.getByRole('button', { name: 'Refresh submissions' }).click();
-          await page.getByRole('heading', { name: 'Fixture: Revised workshop' }).waitFor();
+          await page.locator('.organizer-submissions').getByRole('heading', { name: 'Fixture: Revised workshop' }).waitFor();
           assert.equal(await page.getByRole('button', { name: 'Edit and resubmit' }).count(), 0);
         }
       } else {
@@ -129,9 +129,9 @@ async function edit(page) {
     }
     const { page, context, calls } = await fixture(browser);
     await edit(page);
-    await page.locator('#image').setInputFiles({ name: 'replacement.png', mimeType: 'image/png', buffer: poster });
+    await page.locator('#image').setInputFiles({ name: 'replacement.jpg', mimeType: 'image/jpeg', buffer: poster });
     await page.getByRole('button', { name: 'Cancel revision' }).click();
-    assert.equal(await page.locator('#title').inputValue(), '');
+    assert.equal(await page.locator('#title').count(), 0);
     assert.equal(await page.evaluate(() => window.posterUrls.revoked.length), 1);
     assert.equal(calls.length, 0);
     await edit(page);
@@ -149,11 +149,12 @@ async function edit(page) {
     await context.close();
     console.log('PASS cancellation, object URL cleanup, desktop/tablet/phone layout, navigation and reduced motion');
     const creation = await fixture(browser);
+    await creation.page.getByRole('button', { name: 'Create event', exact: true }).click();
     await creation.page.locator('#title').fill('Fixture: New event');
     await creation.page.locator('#description').fill('Browser fixture for the existing submission path.');
     await creation.page.locator('#starts_at').fill('2027-01-01T09:00');
     await creation.page.locator('#ends_at').fill('2027-01-01T10:00');
-    await creation.page.locator('#image').setInputFiles({ name: 'new.png', mimeType: 'image/png', buffer: poster });
+    await creation.page.locator('#image').setInputFiles({ name: 'new.jpg', mimeType: 'image/jpeg', buffer: poster });
     await creation.page.getByRole('button', { name: 'Submit for approval', exact: true }).click();
     await creation.page.getByRole('status').filter({ hasText: 'Submitted — pending administrator review' }).waitFor();
     assert.deepEqual(creation.calls.map(call => call.action), ['upload', 'insert']);
@@ -171,6 +172,100 @@ async function edit(page) {
       await workspace.context.close();
     }
     console.log('PASS existing event creation and administrator/member desktop/phone layouts');
+    const previewWorkspace = await fixture(browser);
+    const previewPage = previewWorkspace.page;
+    assert.equal(await previewPage.getByRole('link', { name: 'My events', exact: true }).count(), 1);
+    assert.equal(await previewPage.getByRole('link', { name: 'My submissions', exact: true }).count(), 0);
+    assert.equal(await previewPage.locator('#title').count(), 0);
+    const statusFilters = previewPage.getByRole('group', { name: 'My event status' });
+    for (const status of ['Pending', 'Published', 'Rejected']) {
+      await statusFilters.getByRole('button', { name: status, exact: true }).click();
+      assert.equal(await previewPage.locator('.organizer-submission-row').count(), 1);
+      assert.equal(await previewPage.getByRole('button', { name: 'Edit and resubmit' }).count(), status === 'Rejected' ? 1 : 0);
+    }
+    await statusFilters.getByRole('button', { name: 'All', exact: true }).click();
+    const previewTrigger = previewPage.locator('.organizer-submission-row').first().getByRole('button', { name: 'Preview event', exact: true });
+    await previewTrigger.click();
+    const boardPreview = previewPage.getByRole('dialog', { name: 'Event board preview' });
+    await boardPreview.waitFor();
+    assert.equal((await boardPreview.innerText()).includes(original.rejection_reason), false);
+    assert.equal(await boardPreview.locator('.event-card .status-upcoming').count(), 1);
+    assert.equal(await boardPreview.locator('.event-image').evaluate(element => getComputedStyle(element).aspectRatio), '4 / 3');
+    assert.equal(await boardPreview.locator('.event-image img').evaluate(element => getComputedStyle(element).objectFit), 'contain');
+    assert.equal(await boardPreview.getByRole('link', { name: 'View published event' }).count(), 0);
+    await boardPreview.getByRole('button', { name: 'Close board preview' }).focus();
+    await previewPage.keyboard.press('Shift+Tab');
+    assert.equal(await boardPreview.getByRole('button', { name: 'Back to workspace' }).evaluate(element => element === document.activeElement), true);
+    await previewPage.keyboard.press('Tab');
+    assert.equal(await boardPreview.getByRole('button', { name: 'Close board preview' }).evaluate(element => element === document.activeElement), true);
+    await boardPreview.getByRole('button', { name: `Preview ${original.title}` }).click();
+    assert.equal(await boardPreview.getByRole('button', { name: 'Event details', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.equal(await boardPreview.getByRole('button', { name: 'Share', exact: true }).count(), 0);
+    assert.equal(await boardPreview.getByRole('button', { name: 'Add to calendar', exact: true }).count(), 0);
+    await boardPreview.getByRole('button', { name: `View full poster for ${original.title}` }).click();
+    await previewPage.locator('dialog.poster-lightbox[open]').waitFor();
+    await previewPage.keyboard.press('Escape');
+    assert.equal(await boardPreview.evaluate(dialog => dialog.open), true);
+    await previewPage.keyboard.press('Escape');
+    assert.equal(await previewTrigger.evaluate(element => element === document.activeElement), true);
+    assert.equal(await previewPage.evaluate(() => document.body.style.overflow), '');
+    await edit(previewPage);
+    await previewPage.locator('#description').fill('A revised description used only in this private preview.');
+    const livePreview = previewPage.locator('.organizer-live-preview');
+    await livePreview.getByRole('heading', { name: 'Fixture: Revised workshop' }).waitFor();
+    await previewPage.locator('#image').setInputFiles({ name: 'preview-only.jpg', mimeType: 'image/jpeg', buffer: poster });
+    const localPoster = await previewPage.getByAltText('Selected event poster preview').getAttribute('src');
+    assert.match(localPoster, /^blob:/);
+    assert.equal(await livePreview.locator('.event-image img').getAttribute('src'), localPoster);
+    await previewPage.getByRole('button', { name: 'Edit and resubmit', exact: true }).click();
+    assert.equal(await previewPage.locator('#title').inputValue(), 'Fixture: Revised workshop');
+    assert.equal(await livePreview.locator('.event-image img').getAttribute('src'), localPoster, 'Reopening an active revision must retain its replacement preview');
+    for (const theme of ['light', 'dark']) {
+      await previewPage.emulateMedia({ colorScheme: theme });
+      for (const width of [1440, 960, 390, 320]) {
+        await previewPage.setViewportSize({ width, height: 1000 });
+        assert.equal(await previewPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Editor ${theme} overflow ${width}`);
+        if (width !== 960) await previewPage.evaluate(() => window.scrollTo(0, 0));
+        await previewPage.screenshot({ path: `.taste-skill/qa/organizer-editor-${theme}-${width}.png`, fullPage: true });
+      }
+    }
+    await previewPage.setViewportSize({ width: 1280, height: 1000 });
+    await livePreview.getByRole('button', { name: 'Preview Fixture: Revised workshop' }).click();
+    await boardPreview.waitFor();
+    await boardPreview.getByRole('heading', { name: 'Fixture: Revised workshop' }).waitFor();
+    assert.equal((await boardPreview.innerText()).includes(original.rejection_reason), false);
+    await boardPreview.getByRole('button', { name: 'Event card', exact: true }).click();
+    for (const width of [1280, 390]) {
+      await previewPage.setViewportSize({ width, height: 1000 });
+      assert.equal(await previewPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await previewPage.evaluate(() => window.scrollTo(0, 0));
+        await previewPage.screenshot({ path: `.taste-skill/qa/organizer-card-preview-${width}.png`, fullPage: true });
+    }
+    await previewPage.keyboard.press('Escape');
+    await previewPage.locator('#ends_at').fill('2027-01-01T01:00');
+    await livePreview.getByRole('heading', { name: 'Your event preview starts here' }).waitFor();
+    assert.equal(await livePreview.locator('.event-card').count(), 0);
+    await previewPage.getByRole('button', { name: 'Cancel revision' }).click();
+    assert.equal(await previewPage.locator('#title').count(), 0);
+    assert.equal(await previewPage.evaluate(url => window.posterUrls.revoked.includes(url), localPoster), true);
+    assert.equal(await previewPage.evaluate(() => window.posterUrls.revoked.length), 1);
+    assert.equal(previewWorkspace.calls.length, 0, 'Preview must not upload or publish');
+    for (const theme of ['light', 'dark']) {
+      await previewPage.emulateMedia({ colorScheme: theme });
+      for (const width of [1440, 390, 320]) {
+        await previewPage.setViewportSize({ width, height: 1000 });
+        assert.equal(await previewPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `My events ${theme} overflow ${width}`);
+        await previewPage.evaluate(() => window.scrollTo(0, 0));
+        await previewPage.screenshot({ path: `.taste-skill/qa/organizer-list-${theme}-${width}.png`, fullPage: true });
+      }
+    }
+    await previewPage.getByRole('button', { name: 'Create event', exact: true }).click();
+    assert.equal(await previewPage.locator('#title').inputValue(), '');
+    await livePreview.getByRole('heading', { name: 'Your event preview starts here' }).waitFor();
+    await previewPage.getByRole('button', { name: 'Cancel creation' }).click();
+    assert.deepEqual(previewWorkspace.errors, []);
+    await previewWorkspace.context.close();
+    console.log('PASS unified organizer navigation, status filters, private card/details previews, live draft/poster updates, no preview writes, focus, cancellation and light/dark layouts');
     const publicContext = await browser.newContext();
     const publicPage = await publicContext.newPage();
     for (const route of ['/', '/events', '/login']) {

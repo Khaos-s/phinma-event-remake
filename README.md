@@ -16,6 +16,10 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.loca
 
 The seven numbered database migrations in `supabase/sql/` are applied in order. All registered users share `/login`. Accounts with trusted grants for `organizer` (including legacy `cite_organizer`) or `event_admin` open their own workspaces; other accounts receive member access at `/account`. The website cannot grant roles. See `docs/ORGANIZER_SETUP.md` for publisher onboarding, `docs/SPEC.md` for the workflow, and `docs/IMAGE_SOURCES.md` for image credits.
 
+Password recovery uses an emailed six-digit Supabase code, followed by a new password. Apply the hosted recovery email template and confirm OTP length before using it with real accounts; see [`docs/PASSWORD_RECOVERY.md`](docs/PASSWORD_RECOVERY.md). The shared theme toggle follows system appearance until a light/dark choice is saved. Administrator submissions use one status-filtered Manage events list.
+
+Organizers use one My events page with Create event, status-filtered submissions and private event-card/details previews. The preview reuses public components and keeps selected posters local until submission; pending/published records remain locked.
+
 ## Checks
 
 ```bash
@@ -28,8 +32,12 @@ With Playwright available in the environment (or on `NODE_PATH`) and Microsoft E
 
 `node tests/public-experience.mjs` uses the same Playwright runtime for isolated public-page fixtures: featured/live timing, search/filter persistence, quick-view and nested poster focus, calendar download, share fallbacks, related announcements, contact navigation, loading/errors, and reduced motion at 1280px/390px. It makes no hosted writes. The real public home can be empty; no sample events are seeded for presentation.
 
+`node tests/account-experience.mjs` checks extension-injected hydration attributes, system/persisted dark theme, public/auth mobile layout, mocked recovery email/code verification/password update, toast feedback, loading, and the unified admin list. It does not send real emails or change real passwords.
+
 The university department/course catalog is sourced in `docs/ACADEMIC_REFERENCE.md`. The original CITE test assignment is preserved. The organizer form includes a local poster preview; phone filters collapse; full-detail posters can be zoomed. Student rosters and email notifications are later work.
 
 Database RLS and security tests are in `supabase/tests/organization_access.sql` and `supabase/tests/security_boundaries.sql`; all test identities/events/Storage metadata are rolled back. Public queries use announcement-only column grants; complete workspace records use a scoped RPC. See `docs/VERIFICATION.md` for checks and `docs/AUDIT.md` for findings, repairs, and unresolved hosted Auth settings.
 
 Start with `docs/CONTEXT.md` for the code map, `docs/DATA_MODEL.md` for permissions, and `docs/METHODOLOGY.md` for the event workflow. `docs/DESIGN.md` explains how the supplied visual reference was adapted. Reusable agent/context/data/workflow templates and a general engineering guide are in `docs/reusable/`; they are references for future projects, not extra application requirements.
+
+`/showcase` displays all eight core screens/components in a responsive bento overview using approved public events only. Organizer/admin preview panels load no private submissions. `/email-template` previews and copies/downloads the branded Supabase recovery message; save it in hosted Auth settings and confirm six-digit OTP length before outgoing email changes. See `docs/PASSWORD_RECOVERY.md`. College codes are display labels over the existing trusted department/program catalog.

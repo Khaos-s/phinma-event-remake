@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
+import { useFeedbackToasts } from "@/components/toast-provider";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +23,10 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  useFeedbackToasts(error, "");
 
   useEffect(() => {
-    if (!account.loading && account.user && !account.error) router.replace(roleHome(account.role));
+    if (!account.loading && account.user && !account.error && !account.recovering) router.replace(roleHome(account.role));
   }, [account, router]);
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
@@ -59,7 +61,8 @@ export default function LoginPage() {
               <div className="space-y-2"><Label htmlFor="email">Email address</Label><Input id="email" name="email" type="email" autoComplete="email" placeholder="Enter your email address" maxLength={254} required value={email} onChange={(event) => setEmail(event.target.value)} className="h-12" /></div>
               <div className="space-y-2"><Label htmlFor="password">Password</Label><div className="password-field"><Input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 pr-12" /><button type="button" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
               {(error || account.error) && <p role="alert" className="form-error">{error || account.error}</p>}
-              <Button type="submit" className="h-12 w-full justify-between px-5" disabled={busy || account.loading}>{busy ? "Signing in…" : "Sign in"}<ArrowRight size={18} aria-hidden="true" /></Button>
+              <Link href="/forgot-password" className="text-link forgot-password-link">Forgot password?</Link>
+              <Button type="submit" loading={busy} className="h-12 w-full justify-between px-5" disabled={account.loading}>{busy ? "Signing in…" : "Sign in"}{!busy && <ArrowRight size={18} aria-hidden="true" />}</Button>
             </form>
             <div className="login-access-note"><ShieldCheck size={18} aria-hidden="true" /><p>Students, staff, council organizers, and administrators sign in here. Your account opens the tools available to you.</p></div>
             <p className="login-help">Need an account or help signing in?<br />Contact your PHINMA Event administrator.</p>

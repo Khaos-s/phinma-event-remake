@@ -4,6 +4,20 @@ import { eventStage, formatPhilippineTime, matchesEventFilters, philippineTimeIn
 import { chooseFeatured, eventCountdown, eventDateTile, ongoingApproved, relatedEvents } from "./public-events.ts";
 import { eventCalendar } from "./calendar.ts";
 import type { PublicEvent } from "./events.ts";
+import { colleges, collegeLabel } from "./academics.ts";
+import { readFileSync } from "node:fs";
+
+test("college labels preserve the database's sixteen course/department pairs", () => {
+  const migration = readFileSync(new URL("../../supabase/sql/003_organization_access.sql", import.meta.url), "utf8");
+  assert.equal(new Set(colleges.map(college => college.code)).size, 8);
+  assert.equal(new Set(colleges.flatMap(college => college.courses.map(course => course.code))).size, 16);
+  for (const college of colleges) for (const course of college.courses) {
+    assert.ok(migration.includes(`('${course.code}', '${course.name}', '${college.name}')`), `${college.code}/${course.code} must match the seeded database catalog`);
+  }
+  assert.deepEqual(colleges.find(college => college.code === "CITE")?.courses.map(course => course.code), ["BSIT"]);
+  assert.equal(collegeLabel("College of Information Technology"), "CITE · College of Information Technology");
+  assert.equal(collegeLabel("Unknown department"), "Unknown department");
+});
 
 test("date tiles use the Philippine calendar day and handle unavailable dates", () => {
   assert.deepEqual(eventDateTile("2026-12-31T18:30:00Z"), { day: "01", month: "Jan" });

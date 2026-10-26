@@ -17,6 +17,10 @@ The source repository was an unfinished Flask/MySQL application. The remake uses
 
 Everyone uses `/login`. Roles and organization membership are trusted assignments in the database; no role chooser, editable profile field, or browser state grants permission. RLS, foreign keys, a scope trigger, and role-checking review RPCs enforce permissions. The legacy `cite_organizer` spelling resolves to scoped organizer access for compatibility with existing accounts.
 
+`/forgot-password` requests and verifies an emailed six-digit Supabase recovery code; `/reset-password` updates the authenticated user's password. Hosted email configuration is an outstanding owner action documented in `PASSWORD_RECOVERY.md`. Public registration remains outside scope. Appearance supports system/persisted light or dark themes; shared toasts accompany existing inline feedback. Administrators use one Manage events table with status filters and expandable full-submission/poster inspection, and a separate Browse events link.
+
+Organizers use one **My events** workspace. **Create event** opens the existing submission form with a live private card preview; each saved submission offers card/details preview and only rejected rows offer editing. Preview reuses public components, excludes review notes and sharing actions, and uploads/publishes nothing. Successful saves close the editor and select Pending. The owner authorized GitHub publication and production deployment on 26 October 2026; the matching deployment is checked during delivery.
+
 ## Runtime and delivery
 
 - Production: [phinma-ui-event.vercel.app](https://phinma-ui-event.vercel.app/).
@@ -55,3 +59,9 @@ Read `AUDIT.md` for the 2026-10-23 end-to-end audit. Hosted API signup remains e
 ## Reuse
 
 The generic templates in `docs/reusable/` are for starting another project. Fill them with that project's facts; they do not define new PHINMA functionality.
+
+## Local multi-screen showcase and catalog labels
+
+`/showcase` presents eight responsive bento panels for navigation, campus/search, live/featured, discovery, details/poster, organizer form, administrator review, and contact/identity. Its only event query explicitly selects approved public fields. Organizer/admin fragments are disabled, read-only layout previews linking to the actual protected workspaces; no private workspace rows are requested. Empty/error/loading states use real availability. Details/poster/calendar/share actions reuse public components. `/email-template` previews and copies/downloads the exact static recovery HTML, with a six-dot preview and an unchanged `{{ .Token }}` in its source. This page does not configure Supabase or send email.
+
+Public and workspace canvases use canonical tokens and existing fonts. The shared public header is sticky white in light mode, and the forest footer has a gold top border; dark mode remains supported. College chips and coded course labels preserve the database catalog and trusted organizer assignment. The architectural hero image is sourced from the official facilities page. The owner subsequently authorized GitHub publication and Vercel production deployment. Hosted Auth template/settings still require owner setup.

@@ -35,12 +35,15 @@ The primary user is an authorized event organizer assigned to a trusted organiza
 - Quick view: clicking a public event card opens a modal with poster, title, schedule, audience, description, and a link to full details. Support close, Escape, focus containment/return, and phone scrolling.
 - Full details `/events/[id]`: directly open an approved event's complete announcement. Missing, invalid, or unpublished IDs show an unavailable state; failed requests show an error.
 - Shared sign-in page: email and password for all registered accounts.
+- Password recovery `/forgot-password`: request an email code, verify exactly six digits with Supabase recovery OTP, then set a new password at `/reset-password` using the verified Auth session. Hosted email-template/OTP configuration is required; see `PASSWORD_RECOVERY.md`.
 - Member account page: verified account identity, current access, and event browsing.
-- Organizer page: event submission form and own submissions with review status and rejection reason.
-- Administrator page: pending count, full submission details, and Approve/Reject actions.
+- Organizer page: one My events destination with a Create event button, own submissions/status filters/rejection notes, and an on-demand creation/revision form. Live event-card and saved card/details previews reuse public presentation privately; previewing performs no upload or publication and offers no sharing of unpublished events.
+- Administrator page: one Manage events list with Pending, Published, Rejected, and All filters, real counts, full submission details, and pending-only Approve/Reject actions. Browse events remains a public navigation link.
 - Organizer submission status and signed posters refresh manually and every minute; administrators can expand posters during review. Public announcement fields and private workspace metadata use separate database access boundaries.
 
 All authenticated pages share a role-aware sidebar workspace and a compact mobile navigation. Public filters use the official college-programs listing documented in `ACADEMIC_REFERENCE.md`. Department changes reset the course filter; CITE Council appears as an organizer option, not a default scope label. The shared login uses the same PHINMA identity. The supplied design board is a visual reference only; scholarship/duty records and water-reporting rules are not included. See `docs/DESIGN.md` for the mapping.
+
+Public and workspace pages support system/light/dark appearance with a persisted toggle. User-triggered authentication, submission, and review feedback uses dismissible toast notifications alongside durable inline messages. Busy controls and loading states animate only when reduced motion is not requested.
 
 ## Data
 
@@ -74,3 +77,9 @@ One shared Supabase Auth email and password form for all registered accounts. An
 ## Organizer and mobile usability
 
 The organizer sees a local poster preview before upload. Phone filters start collapsed, retain selections when closed, and expand through a labeled button. Full event posters open in an accessible dialog with fit/zoom controls and original-image scrolling. Trusted publisher setup is documented in `ORGANIZER_SETUP.md`.
+
+## Visual showcase and recovery template handoff
+
+A public `/showcase` view arranges the eight core screens/components in a responsive bento grid using canonical PHINMA tokens and typography. Public event panels read approved announcements only. Protected workspace previews show disabled layout controls and links to role-checked pages, without exposing submissions. No demonstration records, accounts, or counts are inserted. The normal public catalog supports the eight college code labels, sixteen program codes, existing year levels, and derived time filters.
+
+An `/email-template` page previews the branded reset email and copies/downloads the exact HTML with Supabase's token placeholder. The project owner must save it in hosted Supabase and confirm six-digit OTP settings/email-provider eligibility before outgoing messages change. This handoff sends no email and changes no hosted settings.

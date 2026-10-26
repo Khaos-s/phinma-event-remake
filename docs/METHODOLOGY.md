@@ -3,7 +3,7 @@
 ## Submission and review
 
 1. An authorized organizer signs in through the shared login. Their organization and department come from a trusted assignment.
-2. They enter a name, description, poster, start/end, course, and target year. The course must belong to their assigned department. The local poster preview does not upload a file until submission; replacing/resetting it releases the temporary object URL.
+2. In My events they choose **Create event**, then enter a name, description, poster, start/end, course, and target year. The course must belong to their assigned department. The form shows a private live card preview once name, description and schedule are valid. The selected poster updates locally and does not upload until submission; replacing/canceling it releases the temporary object URL. Saved submissions also offer a private card/details preview. Public presentation excludes review notes and unpublished sharing/calendar actions.
 3. The poster uploads to an own private path. Inserting the event creates a pending submission.
 4. The administrator's queue checks for submissions every 30 seconds while open and can be refreshed manually.
 5. Approval changes pending to approved in one database operation. The event is then eligible for public reads, including its image.
@@ -11,6 +11,8 @@
 7. **Resubmit for review** sends the content to `resubmit_event`. It atomically updates only the caller’s own rejected event in their current organization, sets pending, and clears the old rejection reason/reviewer/time. It preserves the event ID, publisher, creator, and creation timestamp. A second request or a stale request against a pending/approved event fails. The event remains private until a new administrator approval.
 
 The organizer can refresh submissions manually; the page also reloads status, notes, and signed posters every 60 seconds. A definite database rejection of an insert/resubmission attempts removal of its newly uploaded poster. A successful revision with a replacement attempts removal of the previous poster only after the database save. Storage denies deletion of a poster still linked to an event. Cleanup failure is reported without undoing a successful resubmission. Unknown/transport failures retain the uploaded poster because a request may still commit; the organizer must refresh before retrying. This may leave a private orphan if the request never completes. Administrator review supports full-size poster fit/zoom.
+
+The workspace opens with the submissions list and All/Pending/Published/Rejected filters. A successful save closes the editor, selects Pending, and retains the review confirmation. Cancel returns to the list without saving. Pending/published rows remain read-only and only published rows link to public event details. Preview dialogs support card/detail switching, nested poster zoom, Escape, focus containment/return and restored body scrolling.
 
 Only the administrator can approve or reject. The organizer’s trusted resubmission RPC can only request a fresh pending review. There is one approval stage. The dashboard status label “Published” maps to the stored `approved` value; it is not a separate workflow state. Pending and published cards explicitly explain their locked state.
 
@@ -46,6 +48,12 @@ Submission success is displayed only after the event insert succeeds. Approval/r
 
 `AuthProvider` verifies the current user, reads the own role assignment, and responds to auth state changes. Deferred calls avoid doing another auth operation while the auth callback holds its lock. Revision checks discard outdated identity results. An identity change remounts page state so a previous account's loaded data is not retained in the next account's UI. Sign-out returns to the shared login.
 
+Password recovery requests an email using `resetPasswordForEmail`, verifies the exact six-digit email code using `verifyOtp` with type `recovery`, and only then opens the new-password form. `PASSWORD_RECOVERY` routes to `/reset-password`; a fresh password sign-in or successful password update clears recovery navigation state. Supabase enforces the code/session/password boundaries. No new account is created. Email templates and OTP length are hosted settings; see `PASSWORD_RECOVERY.md` for required setup and delivery verification.
+
 ## Verification boundaries
 
 Node tests cover role fallback/destinations, calendar boundary times, invalid dates, and combined audience/search filters. Local browser fixtures can check redirects, navigation, forms, role-specific layout, and sign-out without real credentials. Such fixtures do not prove live RLS, password authentication, email delivery, uploads, or publication. Verify database policies independently and label fixture results clearly. A real organizer submission followed by a real administrator decision remains the final owner-operated workflow check.
+
+The administrator's unified Manage events view is an accessible table on desktop and stacked rows on phones. Inspect submission expands the actual full announcement and poster; its preview hides public sharing/calendar actions. Pending rows alone offer approve/reject controls. Reviewed decisions remain locked.
+
+College code chips and select labels map back to full department names; changing a chip resets the course filter. Submitted scope still comes from trusted assignments. The public showcase applies the same approved-only selection and public schedule helpers; its protected form/table fragments never query workspace data.

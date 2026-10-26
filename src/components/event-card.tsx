@@ -5,6 +5,7 @@ import { EventStatus } from "@/components/event-status";
 import { PosterViewer } from "@/components/poster-viewer";
 import { PublicEvent, EventStage, formatPhilippineTime, yearLabel } from "@/lib/events";
 import { eventDateTile } from "@/lib/public-events";
+import { colleges } from "@/lib/academics";
 
 export function EventCard({ event, imageUrl, stage, children, onPreview, href, zoomPoster = false }: { event: PublicEvent & { rejection_reason?: string | null }; imageUrl?: string; stage?: EventStage; children?: React.ReactNode; onPreview?: () => void; href?: string; zoomPoster?: boolean }) {
   const date = onPreview || href ? eventDateTile(event.starts_at) : null;
@@ -20,7 +21,7 @@ export function EventCard({ event, imageUrl, stage, children, onPreview, href, z
       </div>
       <CardContent className="space-y-4 pt-6">
         <div>
-          <div className="event-card-heading"><p className="event-department">{event.department} · {event.course}</p><EventStatus status={stage ?? event.status} /></div>
+          <div className="event-card-heading"><p className="event-department" title={event.department}>{colleges.find(item => item.name === event.department)?.code ?? event.department} · {event.course}</p><EventStatus status={stage ?? event.status} /></div>
           <h3>{event.title}</h3>
           {event.organization && <p className="event-organizer">By {event.organization.name}</p>}
         </div>

@@ -2,14 +2,16 @@
 
 import { createContext, Fragment, useContext, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 import { AppRole, Organization, resolveRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
-type Account = { user: User | null; role: AppRole | null; organization: Organization | null; loading: boolean; error: string };
-const initialAccount: Account = { user: null, role: null, organization: null, loading: true, error: "" };
+type Account = { user: User | null; role: AppRole | null; organization: Organization | null; loading: boolean; error: string; recovering: boolean };
+const initialAccount: Account = { user: null, role: null, organization: null, loading: true, error: "", recovering: false };
 const AuthContext = createContext<Account>(initialAccount);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const client = useMemo(() => createClient(), []);
   const [account, setAccount] = useState<Account>(initialAccount);
 
@@ -40,30 +42,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       if (active && request === revision) {
-        setAccount({
+        setAccount(current => ({
           user,
           role: accessError ? null : role,
           organization: accessError ? null : organization,
           loading: false,
           error: accessError ? "We couldn’t check your account access. Please refresh and try again." : "",
-        });
+          recovering: current.recovering,
+        }));
       }
     }
 
-    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       const request = ++revision;
       clearTimeout(timer);
       if (!session) {
         setAccount({ ...initialAccount, loading: false });
         return;
       }
-      setAccount((current) => current.user?.id === session.user.id ? current : initialAccount);
+      setAccount(current => ({ ...(current.user?.id === session.user.id ? current : initialAccount), recovering: event === "PASSWORD_RECOVERY" || (event !== "USER_UPDATED" && event !== "SIGNED_IN" && current.recovering) }));
+      // Also handle recovery links redirected to the configured site root by Supabase.
+      if (event === "PASSWORD_RECOVERY") router.replace("/reset-password");
       // Defer Supabase calls until its auth callback releases the session lock.
       timer = setTimeout(() => void loadAccount(request), 0);
     });
 
     return () => { active = false; revision++; clearTimeout(timer); subscription.unsubscribe(); };
-  }, [client]);
+  }, [client, router]);
 
   return <AuthContext.Provider value={account}><Fragment key={account.user?.id ?? "guest"}>{children}</Fragment></AuthContext.Provider>;
 }

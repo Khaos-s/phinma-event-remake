@@ -65,6 +65,17 @@ try {
   assert.equal(await page.locator(".happening-list li").count(), 2);
   assert.equal(await page.locator(".board-filters").count(), 0);
   assert.equal(await page.locator(".event-image > img").first().evaluate(image => getComputedStyle(image).objectFit), "contain");
+  assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).position), "sticky");
+  assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(255, 255, 255)");
+  assert.equal(await page.locator(".public-discovery").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(244, 246, 242)");
+  assert.equal(await page.locator(".site-footer").evaluate(element => getComputedStyle(element).borderTopColor), "rgb(244, 198, 43)");
+  assert.equal(await page.getByRole("group", { name: "Filter events by college" }).getByRole("button").count(), 9);
+  await page.getByRole("button", { name: "COM · College of Management", exact: true }).click();
+  assert.equal(await page.locator(".event-card-interactive").count(), 0);
+  await page.getByRole("button", { name: "CITE · College of Information Technology", exact: true }).click();
+  assert.equal(await page.locator(".event-card-interactive").count(), 4);
+  assert.equal(await page.locator("#department-filter").inputValue(), department);
+  await page.getByRole("button", { name: "All colleges", exact: true }).click();
   await page.locator("#event-search").focus();
   for (const selector of ["#department-filter", "#year-filter", '.discovery-search button[type="submit"]', ".more-filters summary", ".clear-filters"]) {
     await page.keyboard.press("Tab");
@@ -158,9 +169,49 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Contact overflow ${width}`);
     await page.screenshot({ path: `.taste-skill/public-qa/contact-${width}.png`, fullPage: true });
   }
+  await page.goto(`${base}/showcase`);
+  await page.locator(".showcase-filter-row [role=status]").filter({ hasNotText: "Loading" }).waitFor();
+  assert.equal(await page.locator(".showcase-screen").count(), 8);
+  await page.locator("#showcase-search").fill("no matching fixture");
+  await page.getByRole("heading", { name: "No matching campus events" }).waitFor();
+  await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+  assert.equal(await page.locator(".showcase-event-grid .event-card").count(), 2);
+  assert.equal(await page.locator("#showcase-proposal-title").isDisabled(), true);
+  assert.equal(await page.locator("#showcase-admin .showcase-review-table tbody tr").count(), 1);
+  await page.locator(".showcase-event-grid .event-open").first().click();
+  assert.equal(await page.locator(".showcase-detail-top h3").evaluate(element => element === document.activeElement), true);
+  await page.locator("#showcase-details .poster-open").click();
+  await page.locator("dialog.poster-lightbox[open]").waitFor();
+  await page.keyboard.press("Escape");
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+    for (const width of [1440, 960, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Showcase overflow ${theme}/${width}`);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      await page.screenshot({ path: `.taste-skill/public-qa/showcase-${theme}-${width}.png`, fullPage: true });
+    }
+  }
+  await page.goto(`${base}/email-template`);
+  await page.getByRole("heading", { name: "Password reset email.", exact: true }).waitFor();
+  const source = await readFile("supabase/templates/recovery.html", "utf8");
+  assert.ok(source.includes("{{ .Token }}"));
+  assert.equal(source.includes("{{ .ConfirmationURL }}"), false);
+  assert.equal(decodeURIComponent((await page.getByRole("link", { name: "Download HTML", exact: true }).getAttribute("href")).split(",").slice(1).join(",")), source);
+  await page.getByRole("button", { name: "Copy HTML", exact: true }).click();
+  assert.equal(await page.evaluate(() => window.copiedEventLink), source);
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("Denied"); } } }));
+  await page.getByRole("button", { name: "Copy HTML", exact: true }).click();
+  await page.getByRole("alert").filter({ hasText: "Automatic copy is unavailable" }).waitFor();
+  assert.equal(await page.getByRole("textbox", { name: "Reset password email HTML source" }).inputValue(), source);
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Email template overflow ${width}`);
+    await page.screenshot({ path: `.taste-skill/public-qa/email-template-${width}.png`, fullPage: true });
+  }
   assert.deepEqual(errors, []);
   await context.close();
-  console.log("PASS populated discovery, filters, minute refresh, nested poster/quick-view focus, ICS download, share/fallback, related events and contact");
+  console.log("PASS populated discovery, filters, minute refresh, nested poster/quick-view focus, ICS download, share/fallback, related events, contact, eight-screen showcase and email template copy/download/fallback");
 
   const future = await fixture({ futureOnly: true });
   assert.equal(await future.page.locator(".event-countdown").count(), 1);
@@ -200,4 +251,11 @@ try {
   assert.equal(await staticPage.locator(".reveal-pending").count(), 0);
   await noScript.close();
   console.log("PASS countdown/start boundary, honest empty/error/skeleton states, reduced motion and preference changes");
+} catch (error) {
+  for (const context of browser.contexts()) for (const page of context.pages()) {
+    if (!page.url().startsWith(base)) continue;
+    console.error("Browser failure at", page.url(), (await page.locator("body").innerText()).slice(0, 1300));
+    await page.screenshot({ path: ".taste-skill/public-qa/failure.png", fullPage: true });
+  }
+  throw error;
 } finally { await browser.close(); }

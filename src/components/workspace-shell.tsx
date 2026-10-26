@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, CalendarDays, ChevronRight, ClipboardCheck, FileText, LayoutDashboard, Menu, Plus, ShieldCheck, UserRound, X } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight, ClipboardCheck, FileText, LayoutDashboard, Menu, ShieldCheck, UserRound, X } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { roleHome, roleLabels } from "@/lib/roles";
 
 export function WorkspaceShell({ title, children }: { title: string; children: React.ReactNode }) {
@@ -35,8 +36,8 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
     };
   }, [open]);
   const links = [
-    ...(role === "organizer" ? [{ href: "/organizer", label: "Create an event", icon: Plus }, { href: "/organizer#submissions", label: "My submissions", icon: FileText }] : []),
-    ...(role === "event_admin" ? [{ href: "/admin", label: "Review events", icon: ClipboardCheck }, { href: "/admin#reviewed", label: "Reviewed events", icon: FileText }] : []),
+    ...(role === "organizer" ? [{ href: "/organizer", label: "My events", icon: FileText }] : []),
+    ...(role === "event_admin" ? [{ href: "/admin", label: "Manage events", icon: ClipboardCheck }] : []),
     { href: "/events", label: "Browse events", icon: CalendarDays },
     { href: "/account", label: "My account", icon: UserRound },
   ];
@@ -54,7 +55,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
         {user && <SignOutButton />}
       </aside>
       <div className="workspace-body">
-        <header className="workspace-topbar"><button type="button" className="workspace-menu icon-button" aria-label="Open navigation" aria-expanded={open} aria-controls="workspace-navigation" onClick={() => setOpen(!open)}><Menu size={20} /></button><div className="workspace-breadcrumb"><span>PHINMA UI Event</span><ChevronRight size={14} aria-hidden="true" /><strong>{title}</strong></div><div className="workspace-top-actions">{role && <span className="role-badge"><ShieldCheck size={13} aria-hidden="true" />{role === "event_admin" ? "Administrator" : role === "organizer" ? "Organizer" : "Member"}</span>}<Link href="/events" className="public-site-link">View event board<ArrowUpRight size={15} aria-hidden="true" /></Link></div></header>
+        <header className="workspace-topbar"><button type="button" className="workspace-menu icon-button" aria-label="Open navigation" aria-expanded={open} aria-controls="workspace-navigation" onClick={() => setOpen(!open)}><Menu size={20} /></button><div className="workspace-breadcrumb"><span>PHINMA UI Event</span><ChevronRight size={14} aria-hidden="true" /><strong>{title}</strong></div><div className="workspace-top-actions"><ThemeToggle />{role && <span className="role-badge"><ShieldCheck size={13} aria-hidden="true" />{role === "event_admin" ? "Administrator" : role === "organizer" ? "Organizer" : "Member"}</span>}<Link href="/events" className="public-site-link">View event board<ArrowUpRight size={15} aria-hidden="true" /></Link></div></header>
         <main id="main-content" className="workspace-main">{children}</main>
         <footer className="workspace-footer"><span>PHINMA University of Iloilo</span><span>Campus events · Philippine time</span></footer>
       </div>
