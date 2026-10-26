@@ -82,3 +82,5 @@ The public navigation header displays only the university logo, with its accessi
 ## Single-row navigation correction — 27 October 2026
 
 The public header combines the university logo, primary page links, theme control and account actions in one 72px row, plus its 5px borders. The previous second navigation row is removed. At widths of 1100px and below, links and account actions move into the existing menu; the logo, theme control and menu toggle remain in one row. The full-screen homepage and anchor offsets follow the reduced header height.
+
+The homepage header overlays the campus photograph with a transparent background, white logo/links and gold account action. It returns to the theme’s solid surface after scrolling 24px or opening the mobile menu. The hero includes the header in its full viewport height; the sticky header, other public pages and workspace navigation keep their existing behavior. Scroll state uses the same hydration-safe external-store pattern as the theme control.

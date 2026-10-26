@@ -74,7 +74,12 @@ try {
   });
   assert.ok(header.height <= 82, 'Public navigation occupies one row');
   assert.ok(Math.max(...header.centers) - Math.min(...header.centers) <= 1, 'Logo, links and account actions share one row');
+  assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
+  await page.evaluate(() => window.scrollTo({ top: 100, behavior: "instant" }));
+  await page.waitForFunction(() => !document.querySelector('.site-header').classList.contains('is-transparent'));
   assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(255, 255, 255)");
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.locator('.site-header.is-transparent').waitFor();
   assert.equal(await page.locator(".public-discovery").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(244, 246, 242)");
   assert.equal(await page.locator(".site-footer").evaluate(element => getComputedStyle(element).borderTopColor), "rgb(244, 198, 43)");
   assert.equal(await page.getByRole("group", { name: "Filter events by college" }).getByRole("button").count(), 9);
@@ -97,12 +102,17 @@ try {
     assert.equal(await page.locator(".desktop-nav").isVisible(), width > 1100);
     assert.equal(await page.getByRole("button", { name: "Open navigation", exact: true }).isVisible(), width <= 1100);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.locator('.site-header.is-transparent').waitFor();
     const landing = await page.locator('.campus-hero').evaluate(element => ({ bottom: element.getBoundingClientRect().bottom, viewport: innerHeight }));
     assert.ok(Math.abs(landing.bottom - landing.viewport) <= 1, `Landing fills the first screen at ${width}`);
     await page.screenshot({ path: `.taste-skill/public-qa/home-${width}.png`, fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Home overflow ${width}`);
   }
   await page.setViewportSize({ width: 390, height: 900 });
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+  assert.equal(await page.locator('.site-header').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(255, 255, 255)', 'Open mobile navigation has a readable solid surface');
+  await page.keyboard.press('Escape');
+  await page.locator('.site-header.is-transparent').waitFor();
   await page.getByRole('link', { name: 'Explore the event board', exact: true }).click();
   assert.equal(await page.locator('#events-title').evaluate(element => element.getBoundingClientRect().top >= document.querySelector('.site-header').getBoundingClientRect().bottom && element.getBoundingClientRect().top < innerHeight), true, 'Explore link reaches the board below navigation');
   await page.getByRole("button", { name: "Show filters" }).focus();
@@ -189,6 +199,7 @@ try {
   assert.equal(await page.locator('main a[href="tel:+63333381071;ext=106"]').count(), 1);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Contact", exact: true }).waitFor();
+  assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(255, 255, 255)");
   assert.equal(await page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Contact', exact: true }).getAttribute('aria-current'), 'page');
   await page.keyboard.press("Escape");
   assert.equal(await page.getByRole("button", { name: "Open navigation" }).getAttribute("aria-expanded"), "false");

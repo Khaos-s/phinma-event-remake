@@ -2,17 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ArrowUpRight, CalendarDays, Home, LayoutGrid, Mail, Menu, X } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { roleHome } from "@/lib/roles";
 
+function subscribeToScroll(update: () => void) {
+  window.addEventListener("scroll", update, { passive: true });
+  return () => window.removeEventListener("scroll", update);
+}
+const scrollSnapshot = () => window.scrollY > 24;
+const serverScrollSnapshot = () => false;
+
 export function SiteHeader() {
   const pathname = usePathname();
   const { user, role, loading } = useAccount();
   const [menuOpen, setMenuOpen] = useState(false);
+  const scrolled = useSyncExternalStore(subscribeToScroll, scrollSnapshot, serverScrollSnapshot);
   const home = roleHome(role);
   const links = [
     { href: "/", label: "Home", icon: Home },
@@ -23,7 +31,7 @@ export function SiteHeader() {
   const accountLabel = user ? (role === "member" ? "My account" : "My workspace") : "Sign in";
 
   return (
-    <header className="site-header" onKeyDown={event => { if (event.key === "Escape" && menuOpen) { setMenuOpen(false); event.currentTarget.querySelector<HTMLButtonElement>(".mobile-menu-toggle")?.focus(); } }}>
+    <header className={`site-header ${pathname === "/" ? "over-hero" : ""} ${pathname === "/" && !scrolled && !menuOpen ? "is-transparent" : ""}`} onKeyDown={event => { if (event.key === "Escape" && menuOpen) { setMenuOpen(false); event.currentTarget.querySelector<HTMLButtonElement>(".mobile-menu-toggle")?.focus(); } }}>
       <a className="skip-link" href="#main-content">Skip to content</a>
       <div className="page-container header-main">
         <Link href="/" className="site-brand" aria-label="PHINMA UI Event home" onClick={() => setMenuOpen(false)}>
