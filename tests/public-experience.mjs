@@ -76,13 +76,17 @@ try {
   assert.equal(await page.locator(".event-card-interactive").count(), 4);
   assert.equal(await page.locator("#department-filter").inputValue(), department);
   await page.getByRole("button", { name: "All colleges", exact: true }).click();
+  await page.getByRole("button", { name: "Show filters", exact: true }).click();
   await page.locator("#event-search").focus();
-  for (const selector of ["#department-filter", "#year-filter", '.discovery-search button[type="submit"]', ".more-filters summary", ".clear-filters"]) {
+  for (const selector of ['.discovery-search button[type="submit"]', ".discovery-search .filter-toggle", "#department-filter", "#year-filter", "#course-filter", "#organizer-filter", ".clear-filters"]) {
     await page.keyboard.press("Tab");
     assert.equal(await page.locator(selector).evaluate(element => element === document.activeElement), true, `Keyboard order: ${selector}`);
   }
-  for (const width of [1280, 390, 320]) {
+  await page.getByRole("button", { name: "Hide filters", exact: true }).click();
+  for (const width of [1280, 1101, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
+    assert.equal(await page.locator("#event-search").isVisible(), true, "Search stays visible with filters closed");
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await page.screenshot({ path: `.taste-skill/public-qa/home-${width}.png`, fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Home overflow ${width}`);
   }
@@ -93,7 +97,6 @@ try {
   await page.getByRole("button", { name: "Hide filters" }).click();
   await page.getByRole("button", { name: "Show filters" }).click();
   assert.equal(await page.locator("#year-filter").inputValue(), "2");
-  await page.locator(".more-filters summary").click();
   await page.locator("#course-filter").selectOption("BSIT");
   await page.locator("#department-filter").selectOption("College of Management");
   assert.equal(await page.locator("#course-filter").inputValue(), "all");
@@ -158,8 +161,8 @@ try {
   await page.getByLabel("Event link", { exact: true }).waitFor();
   await page.goto(`${base}/contact`);
   await page.getByRole("heading", { name: "Let’s stay connected." }).waitFor();
-  assert.equal(await page.locator('a[href="mailto:info.ui@phinmaed.com"]').count(), 1);
-  assert.equal(await page.locator('a[href="tel:+63333381071;ext=106"]').count(), 1);
+  assert.equal(await page.locator('main a[href="mailto:info.ui@phinmaed.com"]').count(), 1);
+  assert.equal(await page.locator('main a[href="tel:+63333381071;ext=106"]').count(), 1);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Contact", exact: true }).waitFor();
   await page.keyboard.press("Escape");
@@ -176,6 +179,12 @@ try {
   await page.getByRole("heading", { name: "No matching campus events" }).waitFor();
   await page.getByRole("button", { name: "Reset filters", exact: true }).click();
   assert.equal(await page.locator(".showcase-event-grid .event-card").count(), 2);
+  assert.equal(await page.locator("#showcase-proposal-title").isDisabled(), true);
+  const layoutSteps = page.getByRole("group", { name: "Organizer layout preview step" });
+  await layoutSteps.getByRole("button", { name: /Review & submit/ }).click();
+  await page.locator(".showcase-proposal-full-preview").waitFor();
+  assert.equal(await page.locator("#showcase-organizer").getByRole("button", { name: "Submit for review", exact: true }).isDisabled(), true);
+  await layoutSteps.getByRole("button", { name: /Event details/ }).click();
   assert.equal(await page.locator("#showcase-proposal-title").isDisabled(), true);
   assert.equal(await page.locator("#showcase-admin .showcase-review-table tbody tr").count(), 1);
   await page.locator(".showcase-event-grid .event-open").first().click();

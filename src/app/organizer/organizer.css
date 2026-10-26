@@ -1,0 +1,58 @@
+.organizer-summary[hidden], .organizer-submissions[hidden], .organizer-two-step [hidden] { display: none !important; }
+.organizer-composer.organizer-two-step { width: 100%; padding: 30px; background: var(--muted); border: 1px solid var(--border); border-radius: 14px; }
+.organizer-composer-toolbar { max-width: 780px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.organizer-composer-toolbar .eyebrow { color: var(--primary); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; }
+.organizer-composer-toolbar button { min-height: 44px; font-size: 12px; }
+.organizer-step-indicator { display: flex; align-items: center; justify-content: center; gap: 48px; max-width: 500px; margin: 0 auto 30px; padding: 0; list-style: none; }
+.organizer-step-indicator li { display: flex; align-items: center; gap: 9px; position: relative; font-size: 12px; color: var(--muted-foreground); }
+.organizer-step-indicator li + li::before { content: ""; position: absolute; height: 1px; width: 26px; left: -37px; background: var(--border); }
+.organizer-step-indicator li > span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--input); font-size: 11px; flex: none; }
+.organizer-step-indicator li[aria-current="step"] { color: var(--primary); font-weight: 600; }
+.organizer-step-indicator li[aria-current="step"] > span { color: var(--primary-foreground); background: var(--primary); border-color: var(--primary); }
+.organizer-step-heading { text-align: center; max-width: 600px; margin: 0 auto 28px; }
+.organizer-step-heading h2 { font-size: clamp(25px, 3vw, 34px); line-height: 1.2; scroll-margin-top: 100px; }
+.organizer-step-heading p { color: var(--muted-foreground); margin-top: 12px; font-size: 14px; line-height: 1.7; }
+.organizer-two-step > .form-error { max-width: 780px; margin: 0 auto 22px; }
+.organizer-proposal-panel { width: min(100%, 780px); margin-inline: auto; border-radius: 12px; box-shadow: 0 4px 20px #102c1610; }
+.organizer-proposal-panel > div { padding: 28px; }
+.organizer-proposal-panel > div:first-child { margin-bottom: 0; }
+.organizer-proposal-panel input, .organizer-proposal-panel textarea, .organizer-proposal-panel select { min-height: 46px; background: var(--card); }
+.organizer-proposal-panel .poster-field { background: var(--muted); border-style: dashed; }
+.organizer-proposal-panel .poster-local-preview img { max-height: 220px; }
+.organizer-proposal-panel .form-submit-row > span { max-width: 240px; }
+.organizer-confirm-step { max-width: 1000px; margin-inline: auto; }
+.organizer-confirm-privacy { display: flex; align-items: flex-start; gap: 10px; padding: 16px 20px; background: var(--secondary); color: var(--secondary-foreground); border-left: 3px solid var(--gold); border-radius: 6px; margin-bottom: 22px; font-size: 12px; line-height: 1.7; }
+.organizer-confirm-privacy > svg { flex: none; margin-top: 3px; }
+.organizer-confirm-privacy strong { display: block; margin-bottom: 3px; }
+.organizer-full-preview { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.organizer-full-preview .event-details { border-radius: 12px; }
+.organizer-full-preview .event-details > .event-detail-poster { top: 0; border-radius: 12px 0 0 12px; }
+.organizer-confirm-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 24px; }
+.organizer-confirm-actions > div { display: flex; align-items: center; gap: 18px; }
+.organizer-confirm-actions p { color: var(--muted-foreground); font-size: 11px; max-width: 150px; }
+.organizer-confirm-actions button { min-height: 46px; }
+@media (max-width: 960px) {
+  .organizer-composer.organizer-two-step { padding: 24px; }
+  .organizer-confirm-actions > div { align-items: flex-end; flex-direction: column; gap: 10px; }
+  .organizer-confirm-actions p { max-width: none; }
+}
+@media (max-width: 760px) {
+  .organizer-composer.organizer-two-step { padding: 20px 14px; }
+  .organizer-composer-toolbar { align-items: flex-start; gap: 8px; margin-bottom: 24px; }
+  .organizer-composer-toolbar .eyebrow { padding-top: 13px; font-size: 11px; }
+  .organizer-composer-toolbar button { padding-inline: 7px; font-size: 11px; }
+  .organizer-step-indicator { gap: 28px; margin-bottom: 26px; }
+  .organizer-step-indicator li { font-size: 11px; gap: 6px; }
+  .organizer-step-indicator li + li::before { width: 16px; left: -22px; }
+  .organizer-step-heading p { font-size: 13px; }
+  .organizer-proposal-panel > div { padding: 20px 16px; }
+  .organizer-proposal-panel input, .organizer-proposal-panel textarea, .organizer-proposal-panel select { font-size: 16px; }
+  .organizer-proposal-panel .form-actions { width: 100%; }
+  .organizer-confirm-privacy { padding: 14px; }
+  .organizer-full-preview .event-details > .event-detail-poster { border-radius: 12px 12px 0 0; }
+  .organizer-full-preview .event-detail-content { padding: 20px; }
+  .organizer-confirm-actions { flex-direction: column-reverse; align-items: stretch; }
+  .organizer-confirm-actions > div { align-items: stretch; flex-direction: column-reverse; }
+  .organizer-confirm-actions p { text-align: center; }
+  .organizer-confirm-actions button { width: 100%; white-space: normal; }
+}

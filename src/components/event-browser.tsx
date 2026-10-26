@@ -3,7 +3,7 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, CalendarDays, Search, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/event-card";
 import { EventDetails } from "@/components/event-details";
 import { FeaturedEvent } from "@/components/featured-event";
@@ -99,27 +99,33 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
   }, [resultsKey]);
   function openPreview(event: PublicEvent) { previewOrigin.current = document.activeElement as HTMLElement; setSelected(event); }
 
+  const searchForm = <form className={`page-container discovery-search ${home ? "campus-search" : "directory-search"}`} role="search" aria-label="Find campus events" onSubmit={event => { event.preventDefault(); document.getElementById("events")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); }}>
+    <div className="search-primary-fields">
+      <div className="filter-field"><label className="sr-only" htmlFor="event-search">What interests you?</label><div className="event-search"><Search size={18} aria-hidden="true" /><input id="event-search" type="search" placeholder="Explore campus events" value={search} onChange={event => setSearch(event.target.value)} /></div></div>
+      <Button type="submit"><Search size={16} aria-hidden="true" /><span>Find events</span></Button>
+      <button type="button" className="filter-toggle" aria-controls="event-filter-controls" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={17} aria-hidden="true" />{filtersOpen ? "Hide filters" : "Show filters"}</button>
+    </div>
+    <div id="event-filter-controls" className="discovery-search-controls" data-open={filtersOpen}>
+      <div className="search-audience-fields">
+        <div className="filter-field"><label htmlFor="department-filter">Department</label><select id="department-filter" value={department} onChange={event => { setDepartment(event.target.value); setCourse("all"); }}><option value="all">All departments</option>{colleges.map(college => <option key={college.code} value={college.name}>{collegeLabel(college.name)}</option>)}</select></div>
+        <div className="filter-field"><label htmlFor="year-filter">Year level</label><select id="year-filter" value={year} onChange={event => setYear(event.target.value)}><option value="all">All year levels</option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
+        <div className="filter-field"><label htmlFor="course-filter">Course</label><select id="course-filter" value={course} onChange={event => setCourse(event.target.value)}><option value="all">All courses</option>{courses.map(item => <option key={item.code} value={item.code}>{item.code} · {item.name}</option>)}</select></div>
+        <div className="filter-field"><label htmlFor="organizer-filter">Organizer</label><select id="organizer-filter" value={organizer} onChange={event => setOrganizer(event.target.value)}><option value="all">All organizers</option>{organizations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
+      </div>
+      <div className="search-secondary-row"><button type="button" className="clear-filters" onClick={clearFilters}>Reset filters</button><span className="search-timezone">All times in PHT</span></div>
+    </div>
+  </form>;
+
   return (
     <>
       <SiteHeader />
       <main ref={main} id="main-content" className="public-discovery">
-        {home && <section className="campus-hero" aria-labelledby="board-title"><div className="page-container campus-hero-inner">
-          <div className="campus-hero-copy"><p className="campus-eyebrow">One university. A shared calendar.</p><h1 id="board-title">Campus events.<br /><span>For all of us.</span></h1><p>Find your next workshop, student initiative, or campus gathering. There’s a place for you here.</p><a href="#events" className="hero-explore">Explore the event board<ArrowRight size={18} aria-hidden="true" /></a></div>
-          <div className="campus-hero-art"><Image src="/images/phinma-campus.jpg" alt="Sunlit PHINMA University of Iloilo campus building" fill sizes="(min-width: 900px) 44vw, 100vw" priority /></div>
-        </div>
-        </section>}
-        <form className={`page-container discovery-search ${home ? "over-hero" : "directory-search"}`} role="search" aria-label="Find campus events" onSubmit={(event) => { event.preventDefault(); document.getElementById("events")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); }}>
-          <div className="search-mobile-heading"><span>Find your event</span><button type="button" className="filter-toggle" aria-controls="event-filter-controls" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>{filtersOpen ? "Hide filters" : "Show filters"}<ChevronDown size={16} aria-hidden="true" /></button></div>
-          <div id="event-filter-controls" className="discovery-search-controls" data-open={filtersOpen}>
-            <div className="search-primary-fields">
-              <div className="filter-field"><label htmlFor="event-search">What interests you?</label><div className="event-search"><Search size={18} aria-hidden="true" /><input id="event-search" type="search" placeholder="Search events or topics" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>
-              <div className="filter-field"><label htmlFor="department-filter">Department</label><select id="department-filter" value={department} onChange={(event) => { setDepartment(event.target.value); setCourse("all"); }}><option value="all">All departments</option>{colleges.map(college => <option key={college.name} value={college.name}>{collegeLabel(college.name)}</option>)}</select></div>
-              <div className="filter-field"><label htmlFor="year-filter">Year level</label><select id="year-filter" value={year} onChange={(event) => setYear(event.target.value)}><option value="all">All year levels</option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
-              <Button type="submit"><Search size={16} aria-hidden="true" />Find events</Button>
-            </div>
-            <div className="search-secondary-row"><details className="more-filters"><summary><SlidersHorizontal size={16} aria-hidden="true" />More filters{(course !== "all" || organizer !== "all") && <span className="sr-only"> · active</span>}</summary><div className="more-filter-fields"><div className="filter-field"><label htmlFor="course-filter">Course</label><select id="course-filter" value={course} onChange={(event) => setCourse(event.target.value)}><option value="all">All courses</option>{courses.map(item => <option key={item.code} value={item.code}>{item.code} · {item.name}</option>)}</select></div><div className="filter-field"><label htmlFor="organizer-filter">Organizer</label><select id="organizer-filter" value={organizer} onChange={(event) => setOrganizer(event.target.value)}><option value="all">All organizers</option>{organizations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div></div></details><button type="button" className="clear-filters" onClick={clearFilters}>Reset filters</button><span className="search-timezone">All times in PHT</span></div>
-          </div>
-        </form>
+        {home ? <section className="campus-hero" aria-labelledby="board-title">
+          <div className="campus-hero-art" aria-hidden="true"><Image src="/images/phinma-campus.jpg" alt="" fill sizes="100vw" preload /></div>
+          <div className="page-container campus-hero-inner"><div className="campus-hero-copy"><p className="campus-eyebrow">PHINMA University of Iloilo</p><div className="hero-identity"><Image src="/icon.png" alt="University of Iloilo crest" width={64} height={64} /><h1 id="board-title">PHINMA UI <span>Event</span></h1></div><p>University campus event platform</p></div></div>
+          {searchForm}
+          <p className="hero-board-note">A shared calendar. A connected campus.</p>
+        </section> : searchForm}
         {home && <HappeningNow events={events} now={now} loading={loading} error={error} onUpcoming={() => setFilter("upcoming")} />}
         {featured && <FeaturedEvent event={featured} imageUrl={imageUrls[featured.id]} now={now} />}
         <section id="events" className={`page-container ${home ? "event-section" : "event-directory"}`} aria-labelledby="events-title">

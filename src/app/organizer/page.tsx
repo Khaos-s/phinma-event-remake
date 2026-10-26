@@ -3,9 +3,9 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, Check, Eye, ImagePlus, LockKeyhole, PencilLine, Plus, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, Eye, ImagePlus, LockKeyhole, PencilLine, Plus, RefreshCw, Send, ShieldCheck, X } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
-import { EventCard } from "@/components/event-card";
+import { EventDetails } from "@/components/event-details";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { useFeedbackToasts } from "@/components/toast-provider";
 import { LoadingPanel } from "@/components/loading-panel";
@@ -16,11 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { EVENT_SELECT, EventRow, IMAGE_BUCKET, eventStage, formatPhilippineTime, philippineTimeInput, philippineTimeToIso, signedImageUrls, yearLabel, type PublicEvent } from "@/lib/events";
+import { EVENT_SELECT, EventRow, IMAGE_BUCKET, formatPhilippineTime, philippineTimeInput, philippineTimeToIso, signedImageUrls, yearLabel, type PublicEvent } from "@/lib/events";
 import { colleges, collegeLabel } from "@/lib/academics";
 import { posterExtension } from "@/lib/posters";
 import { createClient } from "@/lib/supabase/client";
 import { roleHome } from "@/lib/roles";
+import "./organizer.css";
 
 export default function OrganizerPage() {
   const client = useMemo(() => createClient(), []);
@@ -39,6 +40,8 @@ export default function OrganizerPage() {
   const [fetchError, setFetchError] = useState("");
   const [editing, setEditing] = useState<EventRow | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [step, setStep] = useState<"details" | "preview">("details");
   const [filter, setFilter] = useState<"all" | EventRow["status"]>("all");
   const [draft, setDraft] = useState<PublicEvent | null>(null);
   const [previewNow, setPreviewNow] = useState(() => Date.now());
@@ -47,6 +50,8 @@ export default function OrganizerPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const editorTrigger = useRef<HTMLElement | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
+  const stepHeading = useRef<HTMLHeadingElement>(null);
+  const historyHeading = useRef<HTMLHeadingElement>(null);
   const submitting = useRef(false);
   const loadRevision = useRef(0);
 
@@ -86,7 +91,22 @@ export default function OrganizerPage() {
     return () => { active = false; clearInterval(refreshTimer); };
   }, [account, loadEvents, router]);
 
+  async function refreshSubmissions() {
+    try { await loadEvents(); }
+    catch { setFetchError("Your submissions could not be loaded. Please refresh the page."); }
+    if (editorOpen) {
+      setShowHistory(true);
+      setFilter("all");
+      requestAnimationFrame(() => {
+        historyHeading.current?.focus({ preventScroll: true });
+        historyHeading.current?.scrollIntoView({ behavior: "instant", block: "start" });
+      });
+    }
+  }
+
   function reviseEvent(item: EventRow | null) {
+    setStep("details");
+    setShowHistory(false);
     if (!editorOpen || editing?.id !== item?.id) {
       editorTrigger.current = document.activeElement as HTMLElement | null;
       setEditorOpen(true);
@@ -99,33 +119,24 @@ export default function OrganizerPage() {
     requestAnimationFrame(() => {
       const field = formRef.current?.querySelector<HTMLInputElement>("#title");
       field?.focus({ preventScroll: true });
-      if (formRef.current) capturePreview(formRef.current, item);
       formRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
     });
   }
 
   function closeEditor() {
-    setEditorOpen(false); setEditing(null); setPosterPreview(null); setDraft(null); setError("");
+    setEditorOpen(false); setShowHistory(false); setStep("details"); setEditing(null); setPosterPreview(null); setDraft(null); setError("");
     requestAnimationFrame(() => { if (editorTrigger.current?.isConnected) editorTrigger.current.focus({ preventScroll: true }); else heading.current?.focus(); });
   }
 
-  function capturePreview(form: HTMLFormElement, source: EventRow | null = editing) {
-    if (!organization) return;
-    const fields = new FormData(form);
-    const startsAt = philippineTimeToIso(String(fields.get("starts_at") ?? ""));
-    const endsAt = philippineTimeToIso(String(fields.get("ends_at") ?? ""));
-    const title = String(fields.get("title") ?? "").trim();
-    const description = String(fields.get("description") ?? "").trim();
-    const course = String(fields.get("course") ?? "");
-    const year = String(fields.get("target_year") ?? "");
-    if (!title || !description || !startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt) || !courses.some(item => item.code === course) || !["", "1", "2", "3", "4"].includes(year)) { setDraft(null); return; }
-    setDraft({ id: source?.id ?? "draft", title, description, starts_at: startsAt, ends_at: endsAt, course, target_year: year ? Number(year) : null, organization, organization_id: organization.id, department: organization.department, image_path: source?.image_path ?? "", status: source?.status ?? "pending" });
+  function backToDetails() {
+    setStep("details");
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLInputElement>("#title")?.focus({ preventScroll: true });
+      stepHeading.current?.scrollIntoView({ behavior: "instant", block: "start" });
+    });
   }
 
-  async function submitEvent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!userId || !organization || submitting.current) return;
-    const form = event.currentTarget;
+  function readProposal(form: HTMLFormElement) {
     const fields = new FormData(form);
     const image = fields.get("image");
     const startsAt = philippineTimeToIso(String(fields.get("starts_at") ?? ""));
@@ -136,22 +147,50 @@ export default function OrganizerPage() {
 
     setError("");
     setNotice("");
-    if (!String(fields.get("title") ?? "").trim() || !String(fields.get("description") ?? "").trim()) {
-      setError("Enter an event name and a description before submitting.");
-      return;
+    const title = String(fields.get("title") ?? "").trim();
+    const description = String(fields.get("description") ?? "").trim();
+    if (!title || !description || String(fields.get("title") ?? "").length > 200 || String(fields.get("description") ?? "").length > 5000) {
+      setError("Enter an event name of 1–200 characters and a description of 1–5,000 characters.");
+      return null;
     }
     if ((!editing && !replacement) || (replacement && !posterExtension(replacement))) {
       setError("Choose a JPG, PNG, or WebP image no larger than 5 MB.");
-      return;
+      return null;
     }
     if (!courses.some(item => item.code === course) || !["", "1", "2", "3", "4"].includes(year)) {
       setError("Choose a valid course and year for your assigned department.");
-      return;
+      return null;
     }
     if (!startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt)) {
       setError("Enter a valid end time after the start time. Times are Philippine time.");
-      return;
+      return null;
     }
+    if (!form.checkValidity()) {
+      setError("Check the required event details before continuing.");
+      return null;
+    }
+    return { title, description, replacement, startsAt, endsAt, course, year };
+  }
+
+  function previewEvent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!organization || submitting.current) return;
+    const proposal = readProposal(event.currentTarget);
+    if (!proposal) return;
+    setDraft({ id: editing?.id ?? "draft", title: proposal.title, description: proposal.description, starts_at: proposal.startsAt, ends_at: proposal.endsAt, course: proposal.course, target_year: proposal.year ? Number(proposal.year) : null, organization, organization_id: organization.id, department: organization.department, image_path: editing?.image_path ?? "", status: "pending" });
+    setStep("preview");
+    requestAnimationFrame(() => {
+      stepHeading.current?.focus({ preventScroll: true });
+      stepHeading.current?.scrollIntoView({ behavior: "instant", block: "start" });
+    });
+  }
+
+  async function submitEvent() {
+    if (step !== "preview" || !draft || !userId || !organization || submitting.current || !formRef.current) return;
+    const form = formRef.current;
+    const proposal = readProposal(form);
+    if (!proposal) { backToDetails(); return; }
+    const { title, description, replacement, startsAt, endsAt, course, year } = proposal;
 
     submitting.current = true;
     setBusy(true);
@@ -165,8 +204,8 @@ export default function OrganizerPage() {
         uploadedPath = path;
       }
       const content = {
-        title: String(fields.get("title") ?? "").trim(),
-        description: String(fields.get("description") ?? "").trim(),
+        title,
+        description,
         image_path: path,
         starts_at: startsAt,
         ends_at: endsAt,
@@ -198,6 +237,8 @@ export default function OrganizerPage() {
         form.reset();
         setEditing(null);
         setEditorOpen(false);
+        setShowHistory(false);
+        setStep("details");
         setDraft(null);
         setFilter("pending");
         setPosterPreview(null);
@@ -225,15 +266,21 @@ export default function OrganizerPage() {
 
   return (
     <WorkspaceShell title="My events">
-        <div className="page-heading organizer-heading"><div><h1 ref={heading} tabIndex={-1}>My events</h1><p>Prepare your next campus event and follow every submission in one place.</p><span className="organizer-publisher"><ShieldCheck size={15} aria-hidden="true" />{organization.name} · {collegeLabel(organization.department)}</span></div><div className="form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => void loadEvents()}><RefreshCw size={15} aria-hidden="true" />Refresh submissions</Button>{!editorOpen && <Button type="button" onClick={() => { reviseEvent(null); }}><Plus size={17} aria-hidden="true" />Create event</Button>}</div></div>
-        <div className="summary-strip"><div><span>Pending review</span><strong>{fetchError ? "—" : events.filter(item => item.status === "pending").length}</strong></div><div><span>Published</span><strong>{fetchError ? "—" : events.filter(item => item.status === "approved").length}</strong></div><div><span>Rejected</span><strong>{fetchError ? "—" : events.filter(item => item.status === "rejected").length}</strong></div></div>
-        {error && <p role="alert" className="form-error">{error}</p>}
+        <div className="page-heading organizer-heading"><div><h1 ref={heading} tabIndex={-1}>My events</h1><p>Prepare your next campus event and follow every submission in one place.</p><span className="organizer-publisher"><ShieldCheck size={15} aria-hidden="true" />{organization.name} · {collegeLabel(organization.department)}</span></div><div className="form-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => void refreshSubmissions()}><RefreshCw size={15} aria-hidden="true" />Refresh submissions</Button>{!editorOpen && <Button type="button" onClick={() => { reviseEvent(null); }}><Plus size={17} aria-hidden="true" />Create event</Button>}</div></div>
+        <div className="summary-strip organizer-summary" hidden={editorOpen}><div><span>Pending review</span><strong>{fetchError ? "—" : events.filter(item => item.status === "pending").length}</strong></div><div><span>Published</span><strong>{fetchError ? "—" : events.filter(item => item.status === "approved").length}</strong></div><div><span>Rejected</span><strong>{fetchError ? "—" : events.filter(item => item.status === "rejected").length}</strong></div></div>
+        {error && !editorOpen && <p role="alert" className="form-error">{error}</p>}
         {notice && <p role="status" className="success-notice"><Check size={17} aria-hidden="true" />{notice}</p>}
-        {editorOpen && <section className="organizer-composer" aria-labelledby="editor-title"><div className="panel-section-heading"><div><h2 id="editor-title">{editing ? "Revise your event" : "Create an event"}</h2><p className="text-sm text-muted-foreground">{editing ? "Use the administrator’s note and resubmit for another review." : "Add your details, then check how they’ll look on the event board."}</p></div><Button type="button" variant="ghost" disabled={busy} onClick={closeEditor}><X size={17} aria-hidden="true" />{editing ? "Cancel revision" : "Cancel creation"}</Button></div><div className="organizer-layout organizer-editor-layout">
-          <Card className="event-form-card">
-            <CardHeader><CardTitle>{editing ? "Revise your submission" : "Event details"}</CardTitle><p className="text-sm text-muted-foreground">{editing ? "Your changes will return this event to the administrator’s queue." : "Tell the community what’s happening."}</p></CardHeader>
+        {fetchError && <p role="alert" className="form-error">{fetchError}</p>}
+        {editorOpen && <section className="organizer-composer organizer-two-step" data-step={step} aria-labelledby="editor-title">
+          <div className="organizer-composer-toolbar"><p className="eyebrow">{editing ? "Revise a submission" : "Create a campus event"}</p><Button type="button" variant="ghost" disabled={busy} onClick={closeEditor}><X size={16} aria-hidden="true" />{editing ? "Cancel revision" : "Cancel creation"}</Button></div>
+          <ol className="organizer-step-indicator" aria-label="Submission steps"><li aria-current={step === "details" ? "step" : undefined}><span>{step === "preview" ? <Check size={14} aria-hidden="true" /> : "1"}</span>Event details</li><li aria-current={step === "preview" ? "step" : undefined}><span>2</span>Preview &amp; submit</li></ol>
+          <div className="organizer-step-heading"><h2 id="editor-title" ref={stepHeading} tabIndex={-1}>{step === "preview" ? "Preview your event" : editing ? "Make it ready for review." : "Bring campus together."}</h2><p>{step === "preview" ? "Check the poster, wording, schedule, and audience before sending your event to the administrator." : "Add the details below. You’ll review a full preview before submitting."}</p></div>
+          {error && <p role="alert" className="form-error">{error}</p>}
+          <div hidden={step !== "details"} className="organizer-detail-step">
+          <Card className="event-form-card organizer-proposal-panel">
+            <CardHeader><CardTitle>Event details</CardTitle><p className="text-sm text-muted-foreground">Your publisher and department follow your assigned university account.</p></CardHeader>
             <CardContent>
-              <form key={editing?.id ?? "new"} ref={formRef} onSubmit={submitEvent} onChange={event => { capturePreview(event.currentTarget); }} className="space-y-5 revision-form" aria-busy={busy}>
+              <form key={editing?.id ?? "new"} ref={formRef} onSubmit={previewEvent} className="space-y-5 revision-form" aria-busy={busy}>
                 <fieldset disabled={busy} className="space-y-5">
                 {editing && <div className="revision-note"><PencilLine size={18} aria-hidden="true" /><div><strong>Administrator’s review note</strong><p>{editing.rejection_reason}</p><span>Revise the details below. The event stays private during review.</span></div></div>}
                 <div className="space-y-2"><Label htmlFor="title">Event name</Label><Input id="title" name="title" maxLength={200} required defaultValue={editing?.title ?? ""} placeholder="Give your event a clear name" /></div>
@@ -249,27 +296,32 @@ export default function OrganizerPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={imageUrls[editing.id]} alt={`Current poster for ${editing.title}`} /><figcaption>Current poster · kept unless replaced</figcaption>
                 </figure>}</div>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div className="space-y-2"><Label htmlFor="starts_at">Start date and time</Label><Input id="starts_at" name="starts_at" type="datetime-local" defaultValue={editing ? philippineTimeInput(editing.starts_at) : ""} required /></div>
                   <div className="space-y-2"><Label htmlFor="ends_at">End date and time</Label><Input id="ends_at" name="ends_at" type="datetime-local" defaultValue={editing ? philippineTimeInput(editing.ends_at) : ""} required /></div>
                 </div>
                 <p className="text-xs text-muted-foreground">Enter both times in Philippine time (PHT).</p>
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div className="space-y-2"><Label htmlFor="department">Department</Label><Input id="department" value={collegeLabel(organization.department)} readOnly /></div>
                   <div className="space-y-2"><Label htmlFor="course">Course</Label><select id="course" name="course" required defaultValue={editing?.course ?? courses[0]?.code ?? ""} className="course-select">{courses.map(item => <option key={item.code} value={item.code}>{item.code} · {item.name}</option>)}</select></div>
                 </div>
                 <div className="space-y-2"><Label htmlFor="target_year">For which year?</Label><select id="target_year" name="target_year" defaultValue={editing?.target_year ?? ""} className="course-select"><option value="">All college years</option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select></div>
-                <div className="form-submit-row"><span>Approval publishes your event automatically.</span><div className="form-actions"><Button type="submit" loading={busy}>{!busy && <Send size={15} aria-hidden="true" />}{busy ? "Submitting…" : editing ? "Resubmit for review" : "Submit for approval"}</Button></div></div>
+                <div className="form-submit-row"><span>Your draft stays private. Nothing uploads in this step.</span><div className="form-actions"><Button type="submit" disabled={busy}>Next: preview event<ArrowRight size={16} aria-hidden="true" /></Button></div></div>
                 </fieldset>
               </form>
             </CardContent>
           </Card>
-
-          <aside className="organizer-live-preview" aria-labelledby="live-preview-title" inert={busy}><div className="panel-section-heading"><h3 id="live-preview-title">On the event board</h3><Eye size={18} aria-hidden="true" /></div><p className="preview-explanation">A private preview of the card visitors will see after approval. Your poster and wording update as you edit.</p>{draft ? <EventCard event={draft} imageUrl={previewImage} stage={eventStage(draft, previewNow)} onPreview={() => setSelectedPreview({ event: draft, imageUrl: previewImage, now: previewNow, view: "details" })} /> : <div className="organizer-preview-empty"><Eye size={27} aria-hidden="true" /><h4>Your event preview starts here</h4><p>Add an event name, description, and a valid start and end time to see your card.</p><span>Your selected poster will appear in the preview.</span></div>}<p className="organizer-preview-privacy"><LockKeyhole size={14} aria-hidden="true" />Previewing does not upload or publish your event.</p></aside>
-        </div></section>}
-        <section aria-labelledby="submissions-title" id="submissions" className="organizer-submissions"><div className="panel-section-heading"><div><h2 id="submissions-title">Your submissions</h2><p className="text-sm text-muted-foreground">Only rejected events can be edited. Pending and published events stay locked.</p></div><span role="status">{fetchError ? "Unavailable" : `${visible.length} events`}</span></div>
+          </div>
+          {step === "preview" && draft && <section className="organizer-confirm-step" aria-label="Private event preview">
+            <p className="organizer-confirm-privacy"><LockKeyhole size={17} aria-hidden="true" /><span><strong>Private preview · not submitted</strong>Your event and poster stay private until administrator approval. Previewing does not upload or save anything.</span></p>
+            <div className="organizer-full-preview" inert={busy}><EventDetails event={draft} imageUrl={previewImage} now={previewNow} preview headingId="organizer-draft-title" showActions={false} /></div>
+            <div className="organizer-confirm-actions"><Button type="button" variant="outline" disabled={busy} onClick={backToDetails}><ArrowLeft size={16} aria-hidden="true" />Back to details</Button><div><p>Administrator approval publishes your event.</p><Button type="button" loading={busy} onClick={() => void submitEvent()}>{!busy && <Send size={16} aria-hidden="true" />}{busy ? "Submitting…" : editing ? "Resubmit for review" : "Submit for approval"}</Button></div></div>
+          </section>}
+        </section>}
+        <section aria-labelledby="submissions-title" id="submissions" className="organizer-submissions" hidden={editorOpen && !showHistory}><div className="panel-section-heading"><div><h2 id="submissions-title" tabIndex={-1} ref={historyHeading}>Your submissions</h2><p className="text-sm text-muted-foreground">Only rejected events can be edited. Pending and published events stay locked.</p></div><span role="status">{fetchError ? "Unavailable" : `${visible.length} events`}</span></div>
+          {editorOpen && showHistory && <p className="info-note">Your draft remains above. Check the refreshed submissions and their status before retrying an unconfirmed save.</p>}
           <div className="organizer-status-filters event-tabs" role="group" aria-label="My event status">{([{ value: "all", label: "All" }, { value: "pending", label: "Pending" }, { value: "approved", label: "Published" }, { value: "rejected", label: "Rejected" }] as const).map(({ value, label }) => <button key={value} type="button" className={filter === value ? "selected" : ""} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}</div>
-          {fetchError ? <p role="alert" className="form-error">{fetchError}</p> : visible.length ? <div className="organizer-submission-list">{visible.map(item => <article key={item.id} className="organizer-submission-row"><div className="organizer-submission-poster">{imageUrls[item.id] ? (
+          {fetchError ? null : visible.length ? <div className="organizer-submission-list">{visible.map(item => <article key={item.id} className="organizer-submission-row"><div className="organizer-submission-poster">{imageUrls[item.id] ? (
             // Signed poster URLs need to stay outside Next's public image cache.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imageUrls[item.id]} alt={`Poster for ${item.title}`} loading="lazy" />

@@ -1,3 +1,14 @@
+# Verification: organization access and event usability
+
+## 2026-10-26: reference design and two-step full preview
+
+- Read the owner's Google Sites prototype through the signed-in browser and inspected the supplied screen reference. Its appearance informs the centered forest campus header/search, compact poster/date-tile discovery, green/gold spotlight, grouped footer and two-step proposal. Example events, role simulation, counts and extra business fields were not copied into the application.
+- Creating/revising now uses Details → full Preview & submit, with a final separate confirmation. The mounted hidden form preserves values and the File/object URL on Back. Preview performs no upload or database write and omits sharing actions/review notes. The final action repeats validation and retains the existing trusted save/RLS boundary and image cleanup handling.
+- Independent review found that Refresh initially loaded hidden history while editing. Refresh now exposes and focuses All history, retains the draft/poster, and exposes fetch errors, including after an uncertain committed save. Regression fixtures exercise failed refresh followed by a visible pending result. A coexisting history/draft poster-label issue was fixed with per-viewer React IDs; nested-dialog accessible naming is covered.
+- Narrow-phone checks exposed a min-content overflow in the workspace and nested date/time field grid. Explicit zero-minimum grid tracks now keep the page and every form control inside its panel through 320px. Desktop/tablet/phone and light/dark screenshots were visually inspected.
+- Lint, 21 automated checks, production build, and the public/organizer/account browser suites pass against a stable production server. These cover keyboard filters, all showcase layout steps, poster focus/zoom, no preview writes, Enter advancing only, Back/File retention, final validation, successful/rejected/uncertain saves, cleanup/cancel, admin locks, hydration/theme/recovery, and mobile navigation.
+- No new dependency, schema migration, hosted Auth setting, or actual email/password/upload/review operation was needed. Browser save/recovery fixtures are isolated and do not replace a real organizer/admin workflow check. Production delivery verifies the pushed Git commit and Vercel alias.
+
 ## 2026-10-26: campus showcase, catalog labels, recovery template and release checks
 
 - The owner subsequently authorized GitHub publication and Vercel production deployment, superseding the earlier local-only instruction. Production must match the pushed Git SHA; delivery records its status and public URL.
@@ -8,7 +19,6 @@
 - A root streaming loading boundary hid the public hero from browsers without JavaScript. It was removed; existing fetch skeletons, workspace loading panels and busy-button spinners remain. The no-JavaScript public-heading regression now passes.
 - An independent source review found no remaining privacy, trusted-scope, hydration or recovery-source issue after the mobile navigation fix. No new dependency, schema/policy migration, real event fixture, real password change or reset email was introduced by this refresh. Real provider delivery and hosted recovery-template/OTP setup remain owner-operated checks; deploying the app does not apply those settings.
 
-# Verification: organization access and event usability
 
 ## 2026-10-26: local organizer workspace and public presentation preview
 

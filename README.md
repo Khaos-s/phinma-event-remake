@@ -18,7 +18,7 @@ The seven numbered database migrations in `supabase/sql/` are applied in order. 
 
 Password recovery uses an emailed six-digit Supabase code, followed by a new password. Apply the hosted recovery email template and confirm OTP length before using it with real accounts; see [`docs/PASSWORD_RECOVERY.md`](docs/PASSWORD_RECOVERY.md). The shared theme toggle follows system appearance until a light/dark choice is saved. Administrator submissions use one status-filtered Manage events list.
 
-Organizers use one My events page with Create event, status-filtered submissions and private event-card/details previews. The preview reuses public components and keeps selected posters local until submission; pending/published records remain locked.
+Organizers use one My events page with Create event, status-filtered submissions and private event-card/details previews. Creating/revising uses Details → full Preview & submit, with Back preserving fields and the selected poster. Preview reuses public components and keeps selected posters local until final submission; pending/published records remain locked.
 
 ## Checks
 
