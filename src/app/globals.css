@@ -63,7 +63,7 @@
 
 html { scroll-behavior: smooth; scroll-padding-top: 160px; }
 body { background: var(--background); color: var(--foreground); font-family: var(--font-body), "Segoe UI", sans-serif; font-size: 15px; line-height: 1.6; }
-h1, h2, h3, .brand-lockup, .event-wordmark { font-family: var(--font-heading), "Segoe UI", sans-serif; font-weight: 600; letter-spacing: -0.025em; }
+h1, h2, h3, .brand-lockup { font-family: var(--font-heading), "Segoe UI", sans-serif; font-weight: 600; letter-spacing: -0.025em; }
 button, input, select, textarea { font-family: inherit; }
 button:not(:disabled), select { cursor: pointer; }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
@@ -77,11 +77,8 @@ button:disabled { cursor: wait; }
 .skip-link:focus { transform: translateY(0); }
 .site-header { position: sticky; top: 0; z-index: 20; background: var(--card); border-bottom: 1px solid var(--border); border-top: 4px solid #006341; }
 .header-main { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 16px; }
-.site-brand { display: flex; align-items: center; gap: 20px; flex-shrink: 0; }
+.site-brand { display: flex; align-items: center; flex-shrink: 0; }
 .university-logo { display: inline-block; flex: none; width: 110px; height: 55px; background: linear-gradient(to bottom, #f8ce00 0 58%, #344b21 58% 100%); mask: url("/images/phinma-ui-logo-white.png") center / contain no-repeat; }
-.brand-divider { width: 1px; height: 32px; background: var(--border); }
-.event-wordmark { font-size: 22px; line-height: 1.2; }
-.event-wordmark span { display: block; font-family: var(--font-body), sans-serif; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--muted-foreground); margin-top: 4px; }
 .desktop-nav { display: flex; align-items: center; gap: 8px; }
 .nav-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; color: var(--muted-foreground); font-weight: 500; }
 .nav-link { padding-inline: 9px; border-radius: 6px; }
@@ -102,20 +99,25 @@ button:disabled { cursor: wait; }
 .public-discovery :is(button, input, select), .public-actions :is(button, a), .site-header :is(button, a), .site-footer a { min-height: 44px; }
 .public-discovery :is(input, select) { font-size: 16px; }
 .public-discovery section { scroll-margin-top: 24px; }
-.campus-hero { --ring: var(--gold); position: relative; isolation: isolate; background: var(--forest); color: white; padding: 30px 0 24px; }
+/* The closed public header is 134px on desktop and 77px on mobile. */
+.campus-hero { --ring: var(--gold); position: relative; isolation: isolate; display: flex; flex-direction: column; min-height: calc(100svh - 134px); background: var(--forest); color: white; padding: 32px 0 24px; }
+.campus-hero-content { display: flex; flex: 1; flex-direction: column; justify-content: center; gap: 36px; padding-block: 36px; }
 .campus-hero-inner { text-align: center; }
-.campus-hero-copy { margin-inline: auto; max-width: 720px; }
-.campus-eyebrow { color: #f4c62b; font-size: 12px; letter-spacing: .08em; margin-bottom: 10px; }
-.hero-identity { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.campus-hero-copy { margin-inline: auto; max-width: 1120px; }
+.campus-eyebrow { color: #f4c62b; font-size: 13px; letter-spacing: .08em; margin-bottom: 24px; }
+.hero-identity { display: flex; align-items: center; justify-content: center; gap: 28px; }
 .hero-identity > img { flex: none; }
-.campus-hero h1 { font-size: clamp(34px, 4vw, 52px); line-height: 1.1; letter-spacing: -.035em; }
+.campus-hero h1 { font-size: clamp(52px, 7.2vw, 104px); line-height: 1.04; letter-spacing: -.045em; }
 .campus-hero h1 span { color: var(--gold); }
-.campus-hero-copy > p:not(.campus-eyebrow) { color: #e0ebe5; font-size: 14px; margin-top: 10px; }
-.campus-hero-art { position: absolute; inset: 0; z-index: -1; overflow: hidden; opacity: .08; pointer-events: none; }
+.campus-hero-copy > p:not(.campus-eyebrow) { color: #e0ebe5; font-size: 20px; margin-top: 24px; }
+.campus-hero-art { position: absolute; inset: 0; z-index: -1; overflow: hidden; opacity: .2; pointer-events: none; }
 .campus-hero-art img { object-fit: cover; object-position: center 38%; }
-.hero-board-note { text-align: center; margin-top: 14px; font-size: 12px; color: #e0ebe5; }
+.hero-board-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 24px; }
+.hero-board-note { font-size: 13px; color: #e0ebe5; }
+.hero-board-footer > a { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; color: var(--gold); }
+.hero-board-footer > a:hover { text-decoration: underline; text-underline-offset: 5px; }
 .discovery-search { position: relative; z-index: 3; padding: 12px; background: var(--card); color: var(--foreground); border-radius: 10px; border: 1px solid var(--border); }
-.discovery-search.campus-search { margin-top: 24px; max-width: 920px; width: min(920px, calc(100% - 64px)); }
+.discovery-search.campus-search { margin-top: 0; max-width: 920px; width: min(920px, calc(100% - 64px)); }
 .directory-search { margin-top: 28px; }
 .search-primary-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; }
 .search-primary-fields .event-search { background: var(--card); }
@@ -129,19 +131,21 @@ button:disabled { cursor: wait; }
 .search-timezone { display: inline-flex; align-items: center; font-size: 12px; color: var(--muted-foreground); }
 @media (max-width: 960px) { .search-audience-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 @media (max-width: 760px) {
-  .campus-hero { padding-top: 24px; }
-  .campus-hero h1 { font-size: clamp(29px, 7vw, 42px); }
-  .hero-identity { gap: 12px; }
-  .hero-identity > img { width: 48px; height: 48px; }
-  .campus-eyebrow { font-size: 11px; }
-  .campus-hero-copy > p:not(.campus-eyebrow) { font-size: 13px; }
-  .discovery-search.campus-search { width: calc(100% - 36px); margin-top: 20px; padding: 10px; }
+  .campus-hero { min-height: calc(100svh - 77px); padding-top: 24px; }
+  .campus-hero-content { gap: 28px; padding-block: 24px; }
+  .campus-hero h1 { font-size: clamp(48px, 10vw, 72px); max-width: 560px; }
+  .hero-identity { flex-direction: column; gap: 20px; }
+  .hero-identity > img { width: 64px; height: 64px; }
+  .campus-eyebrow { font-size: 12px; margin-bottom: 20px; }
+  .campus-hero-copy > p:not(.campus-eyebrow) { font-size: 16px; margin-top: 20px; }
+  .discovery-search.campus-search { width: calc(100% - 36px); margin-top: 0; padding: 10px; }
   .search-primary-fields { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
   .search-primary-fields > .filter-field { grid-column: 1 / -1; }
   .search-primary-fields > button { width: 100%; }
   .discovery-search-controls { padding-inline: 2px; }
   .search-audience-fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .hero-board-note { font-size: 11px; }
+  .hero-board-footer { flex-direction: column; gap: 4px; text-align: center; padding-top: 20px; }
+  .hero-board-note { font-size: 12px; }
 }
 .public-discovery .section-heading h2 { font-size: clamp(26px, 3vw, 36px); }
 .public-discovery .event-board-layout { display: block; }
@@ -501,9 +505,6 @@ button:disabled { cursor: wait; }
   .page-container { width: calc(100% - 36px); }
   .header-main { min-height: 72px; }
   .university-logo { width: 82px; height: 41px; }
-  .site-brand { gap: 12px; }
-  .event-wordmark { font-size: 18px; }
-  .event-wordmark span { font-size: 11px; }
   .desktop-nav { display: none; }
   .mobile-menu-toggle { display: inline-grid; }
   .public-main { padding-block: 22px 36px; }
@@ -584,8 +585,6 @@ button:disabled { cursor: wait; }
 }
 @media (max-width: 380px) {
   .page-container { width: calc(100% - 28px); }
-  .event-wordmark { font-size: 17px; }
-  .site-brand .university-logo { width: 70px; height: 35px; }
   .event-tabs button { padding-inline: 8px; }
   .event-toolbar { gap: 8px; flex-wrap: wrap; }
   .board-hero h1 { font-size: 34px; }
@@ -730,10 +729,7 @@ button:disabled { cursor: wait; }
 @media (max-width: 760px) {
   .header-main { gap: 10px; }
   .site-brand { flex-shrink: 1; min-width: 0; }
-  .site-brand .brand-divider { display: none; }
-  .site-brand .event-wordmark { font-size: 16px; }
-  .site-brand .university-logo { width: 64px; height: 38px; }
-  .site-brand { gap: 8px; }
+  .site-brand .university-logo { width: 100px; height: 50px; }
   .recovery-page { padding-block: 24px 40px; }
   .recovery-card { padding: 24px; }
   .toast-region { right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); }
@@ -741,7 +737,6 @@ button:disabled { cursor: wait; }
   .admin-status-filters button { padding-inline: 8px; }
   .toast button { width: 44px; height: 44px; }
 }
-@media (max-width: 350px) { .site-brand .university-logo { width: 40px; height: 32px; } .site-brand .event-wordmark { font-size: 14px; } .site-brand .event-wordmark span { font-size: 10px; } }
 
 @media (max-width: 420px) { .footer-main { grid-template-columns: minmax(0, 1fr); } }
 

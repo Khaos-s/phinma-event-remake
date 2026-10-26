@@ -28,8 +28,6 @@ export function SiteHeader() {
       <div className="page-container header-main">
         <Link href="/" className="site-brand" aria-label="PHINMA UI Event home" onClick={() => setMenuOpen(false)}>
           <span role="img" aria-label="PHINMA University of Iloilo" className="university-logo" />
-          <span className="brand-divider" aria-hidden="true" />
-          <span className="event-wordmark">PHINMA UI Event<span>University of Iloilo</span></span>
         </Link>
         <div className="header-actions"><ThemeToggle /><div className="desktop-account">{loading ? <span className="nav-account-loading" aria-label="Checking account" /> : <Link href={user ? home : "/login"} className="primary-link">{accountLabel}<ArrowUpRight size={16} aria-hidden="true" /></Link>}{user && <SignOutButton compact />}</div></div>
         <button type="button" className="mobile-menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-controls="mobile-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>

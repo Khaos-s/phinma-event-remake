@@ -72,3 +72,9 @@ The owner's campus-screen image and Google Sites prototype inform visual composi
 The organizer uses a centered white proposal form and a two-step indicator. Next opens a dedicated full-details preview; Back preserves the mounted form and image; final Submit requests administrator review. The public showcase mirrors these two visual steps using disabled form controls and no private records. The reference's simulated roles, example events, extra fields, and decisions on already reviewed events are not application behavior.
 
 The navigation refresh separates public destinations into a second header row and keeps theme/account controls beside the university identity. Mobile navigation groups campus and account links with matching active states. Workspace sidebars group role-specific work and campus links, use the university sun mark, and keep account controls at the foot. Event details add local links to the information and related events below the poster. Both menus retain keyboard dismissal and mobile overflow handling.
+
+## Full-screen homepage — 27 October 2026
+
+The homepage hero fills the initial viewport below the closed public navigation, using the real campus photograph, a larger university identity, and the existing search/filter form. The footer of the hero links directly to the event board. Its minimum height follows the desktop/mobile header sizes; short screens and expanded audience filters grow naturally without clipping controls. The event directory and protected workspaces retain their existing layouts. Existing motion and reduced-motion preferences apply.
+
+The public navigation header displays only the university logo, with its accessible home-link label preserved. The repeated text wordmark and divider beside it are removed; the homepage hero retains the large platform title.

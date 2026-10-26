@@ -65,6 +65,8 @@ try {
   assert.equal(await page.locator(".happening-list li").count(), 2);
   assert.equal(await page.locator(".board-filters").count(), 0);
   assert.equal(await page.locator(".event-image > img").first().evaluate(image => getComputedStyle(image).objectFit), "contain");
+  assert.equal(await page.locator(".site-brand").innerText(), "");
+  assert.equal(await page.getByRole("link", { name: "PHINMA UI Event home", exact: true }).getAttribute("href"), "/");
   assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).position), "sticky");
   assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(255, 255, 255)");
   assert.equal(await page.locator(".public-discovery").evaluate(element => getComputedStyle(element).backgroundColor), "rgb(244, 246, 242)");
@@ -87,15 +89,20 @@ try {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.locator("#event-search").isVisible(), true, "Search stays visible with filters closed");
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    const landing = await page.locator('.campus-hero').evaluate(element => ({ bottom: element.getBoundingClientRect().bottom, viewport: innerHeight }));
+    assert.ok(Math.abs(landing.bottom - landing.viewport) <= 1, `Landing fills the first screen at ${width}`);
     await page.screenshot({ path: `.taste-skill/public-qa/home-${width}.png`, fullPage: true });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Home overflow ${width}`);
   }
   await page.setViewportSize({ width: 390, height: 900 });
+  await page.getByRole('link', { name: 'Explore the event board', exact: true }).click();
+  assert.equal(await page.locator('#events-title').evaluate(element => element.getBoundingClientRect().top >= document.querySelector('.site-header').getBoundingClientRect().bottom && element.getBoundingClientRect().top < innerHeight), true, 'Explore link reaches the board below navigation');
   await page.getByRole("button", { name: "Show filters" }).focus();
   await page.keyboard.press("Space");
   await page.locator("#year-filter").selectOption("2");
   await page.getByRole("button", { name: "Hide filters" }).click();
   await page.getByRole("button", { name: "Show filters" }).click();
+  assert.equal(await page.locator('.campus-hero').evaluate(element => element.querySelector('#event-filter-controls').getBoundingClientRect().bottom <= element.getBoundingClientRect().bottom), true, 'Expanded filters remain inside the landing section');
   assert.equal(await page.locator("#year-filter").inputValue(), "2");
   await page.locator("#course-filter").selectOption("BSIT");
   await page.locator("#department-filter").selectOption("College of Management");

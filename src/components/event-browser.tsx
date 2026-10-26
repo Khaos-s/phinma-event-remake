@@ -3,7 +3,7 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowDown, ArrowRight, CalendarDays, Search, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/event-card";
 import { EventDetails } from "@/components/event-details";
 import { FeaturedEvent } from "@/components/featured-event";
@@ -122,9 +122,11 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
       <main ref={main} id="main-content" className="public-discovery">
         {home ? <section className="campus-hero" aria-labelledby="board-title">
           <div className="campus-hero-art" aria-hidden="true"><Image src="/images/phinma-campus.jpg" alt="" fill sizes="100vw" preload /></div>
-          <div className="page-container campus-hero-inner"><div className="campus-hero-copy"><p className="campus-eyebrow">PHINMA University of Iloilo</p><div className="hero-identity"><Image src="/icon.png" alt="University of Iloilo crest" width={64} height={64} /><h1 id="board-title">PHINMA UI <span>Event</span></h1></div><p>University campus event platform</p></div></div>
-          {searchForm}
-          <p className="hero-board-note">A shared calendar. A connected campus.</p>
+          <div className="campus-hero-content">
+            <div className="page-container campus-hero-inner"><div className="campus-hero-copy"><p className="campus-eyebrow">PHINMA University of Iloilo</p><div className="hero-identity"><Image src="/icon.png" alt="University of Iloilo crest" width={88} height={88} /><h1 id="board-title">PHINMA UI <span>Event</span></h1></div><p>Discover your next campus moment.</p></div></div>
+            {searchForm}
+          </div>
+          <div className="page-container hero-board-footer"><p className="hero-board-note">A shared calendar. A connected campus.</p><a href="#events">Explore the event board<ArrowDown size={18} aria-hidden="true" /></a></div>
         </section> : searchForm}
         {home && <HappeningNow events={events} now={now} loading={loading} error={error} onUpcoming={() => setFilter("upcoming")} />}
         {featured && <FeaturedEvent event={featured} imageUrl={imageUrls[featured.id]} now={now} />}
