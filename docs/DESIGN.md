@@ -65,6 +65,10 @@ The owner then supplied the original [Khaos-s/Phinma-Event repository](https://g
 
 ## Owner reference refresh — 26 October 2026
 
+Full event details and their public/organizer/admin previews use a single-column layout at every width: the contained poster appears first, followed by the title, schedule, audience and description. Poster zoom remains available.
+
 The owner's campus-screen image and Google Sites prototype inform visual composition. The home uses a compact centered crest/wordmark on forest green, a subtle authentic campus backdrop, a visible search field, and an audience-filter disclosure. Desktop discovery has four compact white poster-led cards per row, with gold calendar tiles and readable course/status labels; tablet and phone grids collapse. Full descriptions remain available in the full details/quick view. The spotlight uses a forest information panel and gold action/countdown; poster images remain contained. The forest footer groups campus navigation and verified university contact channels. Dark mode and reduced motion remain supported.
 
 The organizer uses a centered white proposal form and a two-step indicator. Next opens a dedicated full-details preview; Back preserves the mounted form and image; final Submit requests administrator review. The public showcase mirrors these two visual steps using disabled form controls and no private records. The reference's simulated roles, example events, extra fields, and decisions on already reviewed events are not application behavior.
+
+The navigation refresh separates public destinations into a second header row and keeps theme/account controls beside the university identity. Mobile navigation groups campus and account links with matching active states. Workspace sidebars group role-specific work and campus links, use the university sun mark, and keep account controls at the foot. Event details add local links to the information and related events below the poster. Both menus retain keyboard dismissal and mobile overflow handling.

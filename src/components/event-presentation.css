@@ -41,9 +41,9 @@
 .campus-happening-section.happening-section .happening-list p { font-size: 12px; color: var(--muted-foreground); }
 .campus-happening-section.happening-section .live-end { width: fit-content; padding: 5px 9px; margin-top: 2px; border-radius: 5px; background: var(--secondary); color: var(--secondary-foreground); font-size: 11px; }
 
-.campus-event-details.event-details { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: start; border-radius: 14px; background: var(--card); }
-.campus-event-details.event-details > .event-detail-poster { position: sticky; top: 104px; min-height: 360px; padding: 20px; border-radius: 14px 0 0 14px; background: var(--muted); }
-.campus-event-details.event-details.is-preview > .event-detail-poster { top: 62px; border-radius: 0; }
+.campus-event-details.event-details { grid-template-columns: minmax(0, 1fr); align-items: start; border-radius: 14px; background: var(--card); }
+.campus-event-details.event-details > .event-detail-poster { position: static; min-height: 240px; padding: 20px; border-radius: 14px 14px 0 0; background: var(--muted); }
+.campus-event-details.event-details.is-preview > .event-detail-poster { border-radius: 0; }
 .campus-event-details.event-details .poster-open > img { display: block; width: 100%; max-height: 72svh; object-fit: contain; }
 .campus-event-details.event-details .poster-open > span { margin: 16px 0 0; font-size: 12px; }
 .campus-event-details.event-details .event-detail-content { padding: 32px; min-width: 0; }

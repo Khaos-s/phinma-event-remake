@@ -187,8 +187,14 @@ async function preview(page, calls) {
     }
     await page.getByRole('button', { name: 'Open navigation' }).click();
     await page.getByRole('dialog', { name: 'Workspace navigation' }).waitFor();
+    const navigation = page.getByRole('navigation', { name: 'Workspace navigation', exact: true });
+    assert.equal(await navigation.getByRole('link', { name: 'My events', exact: true }).getAttribute('aria-current'), 'page');
+    assert.equal(await navigation.getByRole('link', { name: 'Browse events', exact: true }).getAttribute('href'), '/events');
+    await page.getByRole('button', { name: 'Sign out', exact: true }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: '.taste-skill/qa/workspace-navigation-mobile.png' });
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('button', { name: 'Open navigation' }).getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.getByRole('button', { name: 'Open navigation' }).evaluate(element => element === document.activeElement), true);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.page-heading')).animationName), 'none');
     await context.close();
     console.log('PASS cancellation, object URL cleanup, desktop/tablet/phone layout, navigation and reduced motion');

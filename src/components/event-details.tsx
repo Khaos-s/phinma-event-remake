@@ -12,7 +12,7 @@ export function EventDetails({ event, imageUrl, now, preview = false, showAction
       <div className="event-detail-poster">{imageUrl ? <PosterViewer imageUrl={imageUrl} title={event.title} /> : <p>Event image unavailable</p>}</div>
       <div className="event-detail-content">
         <EventStatus status={eventStage(event, now)} />
-        {preview ? <h2 id={headingId}>{event.title}</h2> : <h1>{event.title}</h1>}
+        {preview ? <h2 id={headingId}>{event.title}</h2> : <h1 id={headingId}>{event.title}</h1>}
         <dl className="event-facts">
           <div><dt><CalendarDays size={17} aria-hidden="true" />Schedule</dt><dd><time dateTime={event.starts_at}>{formatPhilippineTime(event.starts_at)}</time><span>to <time dateTime={event.ends_at}>{formatPhilippineTime(event.ends_at)}</time></span><small>Philippine time · PHT</small></dd></div>
           <div><dt><School size={17} aria-hidden="true" />Department</dt><dd>{collegeLabel(event.department)}</dd></div>

@@ -147,6 +147,15 @@ try {
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Detail overflow ${width}`);
+    const layout = await page.locator('.campus-event-details').evaluate(element => {
+      const poster = element.querySelector('.event-detail-poster').getBoundingClientRect();
+      const content = element.querySelector('.event-detail-content').getBoundingClientRect();
+      return { columns: getComputedStyle(element).gridTemplateColumns.split(' ').length, stacked: poster.bottom <= content.top };
+    });
+    assert.deepEqual(layout, { columns: 1, stacked: true });
+    await page.getByRole('navigation', { name: 'Event navigation' }).getByRole('link', { name: 'Event details', exact: true }).click();
+    assert.ok(await page.locator('#event-information').evaluate(element => element.getBoundingClientRect().top >= document.querySelector('.site-header').getBoundingClientRect().bottom));
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: `.taste-skill/public-qa/detail-${width}.png`, fullPage: true });
   }
   await page.evaluate(() => Object.defineProperty(navigator, "share", { configurable: true, value: async data => { window.sharedEvent = data; } }));
@@ -165,10 +174,12 @@ try {
   assert.equal(await page.locator('main a[href="tel:+63333381071;ext=106"]').count(), 1);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Contact", exact: true }).waitFor();
+  assert.equal(await page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Contact', exact: true }).getAttribute('aria-current'), 'page');
   await page.keyboard.press("Escape");
   assert.equal(await page.getByRole("button", { name: "Open navigation" }).getAttribute("aria-expanded"), "false");
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
+    if (width === 1280) assert.equal(await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Contact', exact: true }).getAttribute('aria-current'), 'page');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Contact overflow ${width}`);
     await page.screenshot({ path: `.taste-skill/public-qa/contact-${width}.png`, fullPage: true });
   }
