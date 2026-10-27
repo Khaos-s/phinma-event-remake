@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
@@ -48,10 +47,6 @@ export default function LoginPage() {
     <>
       <SiteHeader />
       <main id="main-content" className="login-layout">
-        <div className="login-story">
-          <Image src="/images/phinma-students.jpg" alt="PHINMA University of Iloilo students on campus" fill sizes="(min-width: 1024px) 52vw, 100vw" className="login-photo" priority />
-          <div className="login-story-caption"><span className="story-location">PHINMA University of Iloilo</span><p>A place to belong.<br /><span>A moment to be part of.</span></p><span>Discover what brings our campus together.</span></div>
-        </div>
         <div className="login-form-panel">
           <div className="login-form-inner">
             <Link href="/" className="back-link"><ArrowLeft size={16} aria-hidden="true" />Back to campus events</Link>

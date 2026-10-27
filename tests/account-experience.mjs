@@ -94,9 +94,18 @@ try {
   await theme.page.getByRole("button", { name: "Switch to light theme" }).waitFor();
   assert.equal(await theme.page.locator("html").getAttribute("data-theme"), "dark");
   assert.equal(await theme.page.locator("body").getAttribute("data-gr-ext-installed"), "");
-  for (const path of ["/", "/events", "/login", "/contact", "/forgot-password"]) {
+  for (const path of ["/", "/events", "/login", "/contact", "/forgot-password", "/reset-password", "/showcase", "/email-template"]) {
     await theme.page.goto(`${base}${path}`);
     await theme.page.getByRole("button", { name: "Switch to light theme" }).waitFor();
+    const animatedContent = theme.page.locator(path === "/" ? ".campus-hero-content" : "main#main-content");
+    assert.equal(await animatedContent.evaluate(element => getComputedStyle(element).animationName), "none");
+    if (path === "/login") {
+      assert.equal(await theme.page.locator("main img, .login-story").count(), 0);
+      assert.equal(await theme.page.locator(".login-layout").evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length), 1);
+    }
+    await theme.page.emulateMedia({ reducedMotion: "no-preference" });
+    assert.equal(await animatedContent.evaluate(element => getComputedStyle(element).animationName), "page-enter");
+    await theme.page.emulateMedia({ reducedMotion: "reduce" });
     for (const width of [1280, 390, 320]) {
       await theme.page.setViewportSize({ width, height: 900 });
       await noOverflow(theme.page, `${path} dark overflow ${width}`);
@@ -114,6 +123,7 @@ try {
 
   const recovery = await fixture({ delay: true, reduced: false, failUpdate: true });
   await recovery.page.goto(`${base}/login`);
+  assert.equal(await recovery.page.locator("main#main-content").evaluate(element => getComputedStyle(element).animationName), "page-enter");
   await recovery.page.getByRole("link", { name: "Forgot password?" }).click();
   await recovery.page.getByRole("heading", { name: "Forgot your password?" }).waitFor();
   await recovery.page.getByLabel("Email address").fill(user.email);
@@ -152,6 +162,7 @@ try {
   assert.deepEqual(recovery.calls.find(call => call.action === "password").body, { password: "Fixture-password-1!", code_challenge: null, code_challenge_method: null });
   await recovery.page.getByRole("link", { name: "Continue to your account" }).click();
   await recovery.page.getByRole("heading", { name: "University profile" }).waitFor();
+  assert.equal(await recovery.page.locator("main#main-content").evaluate(element => getComputedStyle(element).animationName), "page-enter");
   assert.deepEqual(recovery.errors, []);
   await recovery.context.close();
   console.log("PASS Supabase recovery request, six-digit OTP verification, leading zeroes, resend cooldown, password validation/update, toast and spinner");
@@ -215,6 +226,9 @@ try {
   const admin = await fixture({ admin: true });
   await admin.page.goto(`${base}/admin`);
   await admin.page.getByRole("heading", { name: "Manage events", exact: true }).waitFor();
+  await admin.page.emulateMedia({ reducedMotion: "no-preference" });
+  assert.equal(await admin.page.locator("main#main-content").evaluate(element => getComputedStyle(element).animationName), "page-enter");
+  await admin.page.emulateMedia({ reducedMotion: "reduce" });
   await admin.page.getByRole("button", { name: "Inspect submission", exact: true }).click();
   const inspection = admin.page.getByRole("region", { name: "Full submission: Fixture: pending submission", exact: true });
   await inspection.waitFor();

@@ -462,14 +462,7 @@ button:disabled { cursor: wait; }
 .account-next > a { width: fit-content; }
 .access-note { display: flex; align-items: flex-start; gap: 10px; }
 .access-note > svg { flex: none; margin-top: 3px; }
-.login-layout { width: min(1140px, calc(100% - 64px)); display: grid; grid-template-columns: 1fr 1fr; margin: 44px auto; flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.login-story { position: relative; min-height: 630px; overflow: hidden; background: var(--primary); }
-.login-photo { object-fit: cover; object-position: 52% top; }
-.login-story-caption { position: absolute; bottom: 0; left: 0; right: 0; background: var(--forest); padding: 30px 34px; color: white; }
-.story-location { font-size: 12px; }
-.login-story-caption p { font-family: var(--font-heading), sans-serif; font-size: 30px; font-weight: 600; line-height: 1.2; margin-block: 12px 16px; letter-spacing: -0.02em; }
-.login-story-caption p span { color: var(--gold); }
-.login-story-caption > span:last-child { font-size: 13px; }
+.login-layout { width: min(520px, calc(100% - 36px)); display: grid; grid-template-columns: minmax(0, 1fr); margin: 40px auto; flex: none; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
 .login-form-panel { padding: 36px 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .login-form-inner { width: 100%; max-width: 390px; }
 .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 13px; margin-bottom: 28px; }
@@ -581,8 +574,7 @@ button:disabled { cursor: wait; }
   .workspace-bottom-nav { display: flex; position: fixed; left: 0; bottom: 0; right: 0; z-index: 40; min-height: 66px; background: var(--card); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
   .workspace-bottom-nav a { display: flex; flex: 1; align-items: center; justify-content: center; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted-foreground); }
   .workspace-bottom-nav a[aria-current="page"] { color: var(--primary); font-weight: 600; }
-  .login-layout { grid-template-columns: 1fr; width: calc(100% - 36px); margin: 24px auto; flex: none; }
-  .login-story { display: none; }
+  .login-layout { margin: 24px auto; }
   .login-form-panel { padding: 28px 24px; }
   .login-form-inner h1 { font-size: 30px; }
   .back-link { margin-bottom: 24px; }
@@ -593,6 +585,7 @@ button:disabled { cursor: wait; }
   .event-toolbar { gap: 8px; flex-wrap: wrap; }
   .board-hero h1 { font-size: 34px; }
 }
+@keyframes page-enter { from { opacity: .25; } to { opacity: 1; } }
 @keyframes arrive {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -619,11 +612,12 @@ button:disabled { cursor: wait; }
   .countdown-digit { animation: digit-flip 280ms ease-out; }
   dialog.event-preview[open], dialog.poster-lightbox[open] { animation: dialog-enter 200ms ease-out; }
   dialog[open]::backdrop { animation: backdrop-enter 200ms ease-out; }
-  .board-hero, .login-layout, .page-heading, .event-directory { animation: arrive 420ms ease-out both; }
-  .event-section, .summary-strip { animation: arrive 460ms 60ms ease-out both; }
-  .organizer-layout, .admin-layout, .account-grid { animation: arrive 460ms 100ms ease-out both; }
+  main#main-content, .campus-hero-content { animation: page-enter 260ms cubic-bezier(.2, .7, .2, 1); }
+  main#main-content:has(.campus-hero) { animation: none; }
+  button { transition: scale 120ms cubic-bezier(.2, .7, .2, 1), background-color 160ms ease-out, color 160ms ease-out; }
+  button:not(:disabled):not(:focus-visible):active, .primary-link:not(:focus-visible):active { scale: .98; }
   dialog[open] { animation: arrive 200ms ease-out; }
-  .primary-link, .text-link, .event-open { transition: background 180ms ease, color 180ms ease; }
+  .primary-link, .text-link, .event-open { transition: background 180ms ease, color 180ms ease, scale 120ms cubic-bezier(.2, .7, .2, 1); }
   .primary-link > svg, .text-link > svg, .event-open > svg { transition: transform 180ms ease; }
   .primary-link:hover > svg, .text-link:hover > svg, .event-open:hover > svg { transform: translateX(3px); }
   .workspace-navigation a, .event-tabs button, .filter-toggle { transition: background 180ms ease, color 180ms ease; }

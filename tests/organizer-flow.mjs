@@ -178,6 +178,9 @@ async function preview(page, calls) {
     assert.equal(await page.evaluate(() => window.posterUrls.revoked.length), 1);
     assert.equal(calls.length, 0);
     await edit(page);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    assert.equal(await page.locator('main#main-content').evaluate(element => getComputedStyle(element).animationName), 'page-enter');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await page.evaluate(() => window.scrollTo(0, 0));
