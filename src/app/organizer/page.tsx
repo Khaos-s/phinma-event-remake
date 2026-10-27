@@ -29,7 +29,7 @@ export default function OrganizerPage() {
   const account = useAccount();
   const userId = account.user?.id;
   const organization = account.organization;
-  const courses = colleges.find(college => college.name === organization?.department)?.courses ?? [];
+  const courses = (colleges.find(college => college.name === organization?.department)?.courses ?? []).filter(course => !account.course || course.code === account.course);
   const [posterPreview, setPosterPreview] = useState<{ file: File; url: string } | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});

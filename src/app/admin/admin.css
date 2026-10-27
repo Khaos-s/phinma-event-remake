@@ -73,3 +73,29 @@
   .admin-inspection { padding: 16px; }
   .admin-inspection .event-detail-content { padding: 20px; }
 }
+
+.admin-page-actions, .admin-row-actions, .admin-editor-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.admin-row-actions { margin-top: 12px; gap: 8px; }
+.admin-row-actions button { min-height: 44px; font-size: 12px; padding-inline: 10px; }
+.admin-event-editor, .admin-registration { display: grid; gap: 24px; min-width: 0; }
+.admin-event-editor { width: min(100%, 900px); margin-inline: auto; }
+.admin-event-editor h1 { font-size: 30px; }
+.admin-event-editor .panel-section-heading { align-items: flex-start; }
+.admin-event-editor .panel-section-heading p, .admin-registration > p { font-size: 14px; color: var(--muted-foreground); margin-top: 8px; }
+.admin-event-form { display: grid; gap: 24px; padding: 28px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.admin-event-form[hidden] { display: none; }
+.admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; min-width: 0; }
+.admin-form-grid > div { min-width: 0; }
+.admin-event-form > button { justify-self: start; }
+.admin-editor-actions { justify-content: space-between; margin-top: 24px; }
+.admin-organizer-list { display: grid; gap: 12px; }
+.admin-organizer-list > article { padding: 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow-wrap: anywhere; }
+.admin-organizer-list p { color: var(--muted-foreground); font-size: 13px; margin-top: 6px; }
+@media (max-width: 760px) {
+  .admin-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-event-form { padding: 20px; }
+  .admin-event-form input, .admin-event-form textarea, .admin-event-form select { font-size: 16px; }
+  .admin-page-actions { gap: 10px; }
+}
+
+.admin-registration > h2 { font-size: 22px; }

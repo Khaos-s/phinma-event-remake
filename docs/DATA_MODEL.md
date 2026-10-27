@@ -1,12 +1,12 @@
 # PHINMA UI Event: data and access
 
-The seven numbered migrations in `supabase/sql/` are applied in order, including `007_rejected_event_resubmission.sql`. All seven are applied to hosted Supabase. Add new numbered migrations; do not rewrite applied SQL.
+The eight numbered migrations in `supabase/sql/` are applied in order, including `008_admin_management.sql`. All eight are applied to hosted Supabase. Add new numbered migrations; do not rewrite applied SQL.
 
 ## Catalog and publisher identity
 
 - `academic_programs`: `code` primary key, `name`, and `department`; unique `(code, department)`. The 16 programs are seeded from the sourced academic catalog.
 - `organizations`: generated UUID `id`, trimmed `name` (1–120 characters), and an official college `department`. Unique `(name, department)` and `(id, department)`. Public reads expose publisher labels, not account membership or contact details. Only the existing CITE Council organization is seeded.
-- `role_assignments`: one row per privileged Auth user. `role` is `organizer`, `event_admin`, or the compatibility spelling `cite_organizer`. Organizers require an `organization_id` foreign key; administrators require it to be null. Only a trusted administrative session can create/change organizations or assignments. Signed-in users can read their own assignment only.
+- `role_assignments`: one row per privileged Auth user. `role` is `organizer`, `event_admin`, or the compatibility spelling `cite_organizer`. Organizers require an `organization_id` foreign key; administrators require it to be null. Administrators can register organizer assignments through `admin_assign_organizer`; changing existing privileged assignments remains trusted administration. A nullable `course` references the academic catalog. New website registrations require one matching department/course; existing null-course grants retain department-wide access. Signed-in users can read their own assignment only.
 
 Browser roles have SELECT only on the two public catalog tables and no mutation grants on assignments. All exposed tables have RLS enabled. No assignment means member access. User metadata never grants permissions. See `ORGANIZER_SETUP.md` for onboarding and revocation.
 
@@ -26,12 +26,13 @@ Review status is `pending`, `approved`, or `rejected`. Pending requires null rev
 | --- | --- | --- | --- |
 | Read approved event | Yes | Yes | Yes |
 | Read pending/rejected event | No | Own only | All |
-| Insert event | No | Own, pending, assigned organization/department only | No |
+| Insert event | No | Own pending, assigned organization/department/course | `admin_save_event`, pending |
 | Direct content update | No | Own rejected events in current assigned organization only | No |
 | Resubmit RPC | No | Own rejected events in current assigned organization only | No |
 | Direct review/identity update or delete | No | No | No |
+| Admin content-save/delete RPCs | No | No | All events; creator, publisher and review state preserved on edits |
 | Approve/reject RPC | No | No | Pending events only |
-| Assign roles/create publisher | No | No | Trusted Supabase administration; no website editor |
+| Register organizer/create publisher | No | No | Server-only Auth creation and trusted registration RPC |
 
 `has_role(text)` checks the current database assignment. Its organizer spellings are compatible so existing CITE accounts and managed Storage policies continue working. `approve_event(uuid)` and `reject_event(uuid,text)` verify `event_admin`, atomically transition only a pending row, and record the reviewer. Concurrent/repeated decisions fail. These deliberate security-definer functions have an empty search path and signed-in EXECUTE grants; `PUBLIC` and `anon` EXECUTE are explicitly revoked by migration 004.
 
@@ -54,3 +55,15 @@ Signed URLs expire after an hour; public/admin views and organizer history refre
 `supabase/tests/rejected_event_resubmission.sql` covers rejected-only edits, same-organization cross-owner denial, revoked/changed assignment denial, review/identity column protection, input constraints, repeated requests, atomic pending/reset behavior, private resubmissions, and fresh administrator approval. All fixtures roll back.
 
 The UI cleans a failed save’s new poster only for a definite database rejection (4xx plus a validation/privilege/PLpgSQL SQLSTATE). Unknown errors, gateway failures, and thrown requests retain it: the database request can still commit after the client loses its response. Preserving that image avoids a pending event pointing to a deleted poster; an unresolved request may leave a private orphan.
+
+## Administrator management — 27 October 2026
+
+Migration 008 adds the assigned course and database-owned `events.updated_at`. The insert/update trigger checks a restricted organizer’s course on direct writes and resubmission RPCs; existing null-course assignments retain their previous scope. Browser grants do not allow writing the assignment or version. Public SELECT grants and `PUBLIC_EVENT_SELECT` exclude the version; the role-checked workspace RPC returns it for concurrency checks.
+
+`admin_assign_organizer(email,publisher,department,course)` checks the current database administrator, validates the academic pair, locks the target Auth row, creates/reuses the publisher and grants only organizer access atomically. An exact repeat succeeds; different existing privileged access cannot be overwritten. `admin_organizers()` is administrator-only and exposes the private email/scope list. Anonymous/PUBLIC execution is revoked for all new RPCs.
+
+The `admin-register-organizer` hosted Edge Function validates the user JWT using Auth `getUser`, then checks the current administrator grant before any Auth Admin operation. Its service role key exists only in the hosted function’s automatic environment. No privileged key is added to Next.js or Vercel. The platform JWT toggle is off because the handler performs its own user verification (compatible with current signing keys); missing/invalid sessions fail closed. New accounts receive an administrator-set 12–128 character initial password and administrator-confirmed email. This operation sends no email. Existing member accounts retain their existing password. A definite assignment rejection cleans up only a newly created account; unknown outcomes retain it so a possibly completed assignment is not deleted. Repeating registration can finish setup. Cleanup failure is reported explicitly.
+
+`admin_save_event` creates pending events as the current administrator for a selected publisher, or edits an existing event without changing creator, organization/department, creation time, status or review metadata. `admin_delete_event` deletes any review status only after checking the current administrator. Both edit/delete require the exact database version and fail after a concurrent review, revision or edit. There are no new direct administrator UPDATE/DELETE policies or table grants. New private-bucket Storage policies allow administrator poster uploads and deletion only when no event references that path. An edit retains the original creator’s poster prefix; definite rejected saves clean the new unreferenced upload, unknown outcomes retain it, and old posters are removed only after a confirmed save. Event deletion returns its poster path for subsequent Storage API cleanup.
+
+Hosted `supabase/tests/admin_management.sql` verifies administrator-only RPCs, course restrictions on all organizer write paths, registration retries and protected existing roles, pending creation, published edits, preserved identity/review, stale versions, deletion and revocation in a rolled-back transaction. The three previous hosted regression suites also pass. Browser fixtures and Auth Admin unit mocks cover UI and failure compensation; they do not prove a real new account’s password sign-in or real Storage transfer.

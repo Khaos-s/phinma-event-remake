@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, CalendarDays, ChevronRight, ClipboardCheck, FileText, Home, LayoutDashboard, Mail, Menu, ShieldCheck, UserRound, X } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronRight, ClipboardCheck, FileText, Home, LayoutDashboard, Mail, Menu, ShieldCheck, UserRound, UsersRound, X } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -37,7 +37,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
   }, [open]);
   const links = [
     ...(role === "organizer" ? [{ href: "/organizer", label: "My events", icon: FileText }] : []),
-    ...(role === "event_admin" ? [{ href: "/admin", label: "Manage events", icon: ClipboardCheck }] : []),
+    ...(role === "event_admin" ? [{ href: "/admin", label: "Manage events", icon: ClipboardCheck }, { href: "/admin/users", label: "Manage organizers", icon: UsersRound }] : []),
     { href: "/account", label: "My account", icon: UserRound },
   ];
 

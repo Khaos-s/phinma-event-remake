@@ -1,0 +1,3 @@
+[functions.admin-register-organizer]
+# The handler verifies the user JWT with Auth and the current database admin grant.
+verify_jwt = false

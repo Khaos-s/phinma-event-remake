@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { AppRole, Organization, resolveRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 
-type Account = { user: User | null; role: AppRole | null; organization: Organization | null; loading: boolean; error: string; recovering: boolean };
-const initialAccount: Account = { user: null, role: null, organization: null, loading: true, error: "", recovering: false };
+type Account = { user: User | null; role: AppRole | null; organization: Organization | null; course: string | null; loading: boolean; error: string; recovering: boolean };
+const initialAccount: Account = { user: null, role: null, organization: null, course: null, loading: true, error: "", recovering: false };
 const AuthContext = createContext<Account>(initialAccount);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const { data, error } = await client.from("role_assignments")
-        .select("role,organization_id").eq("user_id", user.id).maybeSingle();
+        .select("role,organization_id,course").eq("user_id", user.id).maybeSingle();
       const role = resolveRole(data?.role);
       let organization: Organization | null = null;
       let accessError = Boolean(error);
@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user,
           role: accessError ? null : role,
           organization: accessError ? null : organization,
+          course: accessError ? null : data?.course ?? null,
           loading: false,
           error: accessError ? "We couldn’t check your account access. Please refresh and try again." : "",
           recovering: current.recovering,

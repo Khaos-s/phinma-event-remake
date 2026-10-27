@@ -21,10 +21,11 @@ export type EventRow = {
   status: "pending" | "approved" | "rejected";
   rejection_reason: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 export type EventStage = "upcoming" | "ongoing" | "past";
-export type PublicEvent = Omit<EventRow, "created_by" | "created_at" | "rejection_reason">;
+export type PublicEvent = Omit<EventRow, "created_by" | "created_at" | "rejection_reason" | "updated_at">;
 
 export function matchesEventFilters(
   event: Pick<EventRow, "starts_at" | "ends_at" | "target_year" | "title" | "description" | "course" | "department" | "organization_id">,

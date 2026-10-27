@@ -95,3 +95,9 @@ Browser fixtures intercept hosted writes and never create public sample events. 
 - API signup is enabled despite administrator-provisioned UI scope. The dashboard browser permission was denied, so this remains an owner setting action. Development-only dependency advisory, pagination, and operational checks are documented in `AUDIT.md`.
 
 Deployment verification is recorded in the delivery message and Vercel's matching Git commit deployment.
+
+## Administrator extension — 27 October 2026
+
+Migration 008 is applied and the Auth registration Edge Function is deployed. Its unsigned/invalid-token HTTP requests return 401. The new rollback-only administrator SQL suite and all three existing hosted regression suites pass. Twenty-six Node tests include Auth Admin mocks for role checks, input/scope validation, existing-password preservation and definite-vs-unknown outcome cleanup. Browser fixtures verify registration failures/success, course-scoped organizers, full previews and Back/file retention, pending creation, published edits, delete confirmation/cleanup, member denial, mobile/desktop layouts and the previous review/revision flows. No production users/events were created, edited or deleted by those tests. Actual successful Auth Admin account creation, password sign-in and Storage transfer remain owner-operated verification.
+
+The four new signed-in security-definer RPC advisory findings are deliberate privileged boundaries: empty search paths, current database administrator checks, restricted inputs and authenticated-only execution. Existing leaked-password protection and signup settings are unchanged; their prior owner actions still apply.
