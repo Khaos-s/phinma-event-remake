@@ -180,6 +180,21 @@
 .admin-type-tab-btn.is-active { background: var(--card); color: var(--foreground); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .admin-modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); background: var(--muted); }
 
+/* Actions Cell & Buttons */
+.admin-row-actions-cell { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.admin-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; border: 1px solid var(--border); background: var(--card); color: var(--foreground); cursor: pointer; transition: all 120ms ease; }
+.admin-action-btn:hover { background: var(--muted); }
+.admin-action-btn.edit:hover { border-color: var(--primary); color: var(--primary); }
+.admin-action-btn.delete { color: var(--muted-foreground); }
+.admin-action-btn.delete:hover { border-color: var(--destructive); background: rgba(178, 38, 38, 0.1); color: var(--destructive); }
+
+/* Confirmation Alert Dialog */
+.admin-confirm-dialog { max-width: 460px; }
+.admin-confirm-body { padding: 28px 24px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+.admin-confirm-icon { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; background: rgba(178, 38, 38, 0.12); color: var(--destructive); flex: none; }
+.admin-confirm-body h3 { font-size: 18px; font-weight: 700; margin: 0; color: var(--foreground); }
+.admin-confirm-body p { font-size: 13px; color: var(--muted-foreground); line-height: 1.6; margin: 0; }
+
 @media (max-width: 900px) {
   .admin-users-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-users-toolbar { flex-direction: column; align-items: stretch; }

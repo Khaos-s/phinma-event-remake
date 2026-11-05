@@ -3,15 +3,18 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   Building2,
   Check,
   Copy,
   GraduationCap,
+  Pencil,
   Plus,
   RefreshCw,
   Search,
   Shield,
   ShieldCheck,
+  Trash2,
   UserCheck,
   UserPlus,
   Users,
@@ -50,6 +53,13 @@ type UserRecord = {
   course: string | null;
   organizationName?: string;
   status: "active";
+};
+
+type OrganizerOverride = {
+  schoolId?: string;
+  department?: string;
+  course?: string;
+  organizationName?: string;
 };
 
 const DEFAULT_ORGANIZER_IDS: Record<string, string> = {
@@ -149,6 +159,7 @@ export default function AdminUsersPage() {
       return SEED_NORMAL_USERS;
     }
   });
+
   const [organizerIdMap, setOrganizerIdMap] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return DEFAULT_ORGANIZER_IDS;
     try {
@@ -158,6 +169,27 @@ export default function AdminUsersPage() {
       return DEFAULT_ORGANIZER_IDS;
     }
   });
+
+  const [deletedOrganizerIds, setDeletedOrganizerIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = localStorage.getItem("phinma_deleted_organizers_v1");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [organizerOverrides, setOrganizerOverrides] = useState<Record<string, OrganizerOverride>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const stored = localStorage.getItem("phinma_organizer_overrides_v1");
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -171,7 +203,7 @@ export default function AdminUsersPage() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedAffiliation, setSelectedAffiliation] = useState<string>("all");
 
-  // Modal creation states
+  // Create Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [accountType, setAccountType] = useState<"organizer" | "user">("organizer");
   const [formAffiliation, setFormAffiliation] = useState<AffiliationType>("student");
@@ -182,12 +214,28 @@ export default function AdminUsersPage() {
   const [formCourse, setFormCourse] = useState<string>(colleges[0].courses[0].code);
   const [formPublisher, setFormPublisher] = useState("");
 
+  // Edit Modal states
+  const [editTarget, setEditTarget] = useState<UserRecord | null>(null);
+  const [editSchoolId, setEditSchoolId] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAffiliation, setEditAffiliation] = useState<AffiliationType>("student");
+  const [editDepartment, setEditDepartment] = useState<string>(colleges[0].name);
+  const [editCourse, setEditCourse] = useState<string>(colleges[0].courses[0].code);
+  const [editPublisher, setEditPublisher] = useState("");
+
+  // Delete Confirmation Dialog state
+  const [deleteTarget, setDeleteTarget] = useState<UserRecord | null>(null);
+
   const saving = useRef(false);
   useFeedbackToasts(error, notice);
 
-  const courses = useMemo(() => {
+  const formCourses = useMemo(() => {
     return colleges.find((item) => item.name === formDepartment)?.courses ?? [];
   }, [formDepartment]);
+
+  const editCourses = useMemo(() => {
+    return colleges.find((item) => item.name === editDepartment)?.courses ?? [];
+  }, [editDepartment]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -219,26 +267,33 @@ export default function AdminUsersPage() {
 
   // Combined records for the unified table
   const allRecords = useMemo<UserRecord[]>(() => {
-    const organizerRecords: UserRecord[] = organizers.map((org, index) => {
+    const activeOrganizers = organizers.filter((org) => !deletedOrganizerIds.includes(org.user_id));
+
+    const organizerRecords: UserRecord[] = activeOrganizers.map((org, index) => {
+      const emailLower = org.email.toLowerCase();
+      const override = organizerOverrides[org.user_id] || organizerOverrides[emailLower] || {};
+
       const knownId =
-        organizerIdMap[org.email.toLowerCase()] ||
-        DEFAULT_ORGANIZER_IDS[org.email.toLowerCase()] ||
+        override.schoolId ||
+        organizerIdMap[emailLower] ||
+        DEFAULT_ORGANIZER_IDS[emailLower] ||
         `04-2324-0${39960 + index}`;
+
       return {
         id: org.user_id,
         schoolId: knownId,
         email: org.email,
         role: "organizer",
         affiliation: "student",
-        department: org.department,
-        course: org.course,
-        organizationName: org.organization_name,
+        department: override.department || org.department,
+        course: override.course !== undefined ? override.course : org.course,
+        organizationName: override.organizationName || org.organization_name,
         status: "active",
       };
     });
 
     return [...organizerRecords, ...normalUsers];
-  }, [organizers, normalUsers, organizerIdMap]);
+  }, [organizers, normalUsers, organizerIdMap, deletedOrganizerIds, organizerOverrides]);
 
   // Filtered records
   const filteredRecords = useMemo(() => {
@@ -269,13 +324,127 @@ export default function AdminUsersPage() {
     setTimeout(() => setCopiedId(null), 2000);
   }
 
-  // Handle department change in form
+  // Handle department change in Create Form
   function handleFormDepartmentChange(newDept: string) {
     setFormDepartment(newDept);
     const available = colleges.find((c) => c.name === newDept)?.courses ?? [];
     if (available.length) {
       setFormCourse(available[0].code);
     }
+  }
+
+  // Handle department change in Edit Form
+  function handleEditDepartmentChange(newDept: string) {
+    setEditDepartment(newDept);
+    const available = colleges.find((c) => c.name === newDept)?.courses ?? [];
+    if (available.length) {
+      setEditCourse(available[0].code);
+    }
+  }
+
+  // Open Edit Modal
+  function handleStartEdit(record: UserRecord) {
+    setEditTarget(record);
+    setEditSchoolId(record.schoolId === "External" ? "" : record.schoolId);
+    setEditEmail(record.email);
+    setEditAffiliation(record.affiliation);
+    setEditDepartment(record.department || colleges[0].name);
+    setEditCourse(record.course || colleges[0].courses[0].code);
+    setEditPublisher(record.organizationName || "");
+    setError("");
+  }
+
+  // Save Edit Changes
+  function handleSaveEdit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editTarget) return;
+    setError("");
+
+    const isPhinmaSchool =
+      editTarget.role === "organizer" || editAffiliation === "student" || editAffiliation === "faculty";
+
+    if (isPhinmaSchool) {
+      if (!editSchoolId.trim() || !editSchoolId.startsWith("04-")) {
+        setError('School ID must be a valid PHINMA ID starting with "04-" (e.g. 04-2324-039960).');
+        return;
+      }
+      if (!editEmail.endsWith("@phinmaed.com") && editTarget.role !== "organizer") {
+        setError('PHINMA students and employees must use their official "@phinmaed.com" email address.');
+        return;
+      }
+    }
+
+    if (editTarget.role === "organizer") {
+      // Update Organizer overrides and ID map
+      const updatedIds = { ...organizerIdMap, [editTarget.email.toLowerCase()]: editSchoolId.trim() };
+      setOrganizerIdMap(updatedIds);
+      try {
+        localStorage.setItem("phinma_account_ids_v1", JSON.stringify(updatedIds));
+      } catch {}
+
+      const updatedOverrides = {
+        ...organizerOverrides,
+        [editTarget.id]: {
+          schoolId: editSchoolId.trim(),
+          department: editDepartment,
+          course: editCourse,
+          organizationName: editPublisher.trim() || editTarget.organizationName,
+        },
+      };
+      setOrganizerOverrides(updatedOverrides);
+      try {
+        localStorage.setItem("phinma_organizer_overrides_v1", JSON.stringify(updatedOverrides));
+      } catch {}
+
+      setNotice(`Organizer account ${editEmail} updated successfully.`);
+    } else {
+      // Update normal user record
+      const updatedUsers = normalUsers.map((item) => {
+        if (item.id === editTarget.id) {
+          return {
+            ...item,
+            schoolId: isPhinmaSchool ? editSchoolId.trim() : "External",
+            email: editEmail.trim().toLowerCase(),
+            affiliation: editAffiliation,
+            department: isPhinmaSchool ? editDepartment : null,
+            course: editAffiliation === "student" ? editCourse : null,
+          };
+        }
+        return item;
+      });
+
+      setNormalUsers(updatedUsers);
+      try {
+        localStorage.setItem("phinma_registered_students_v1", JSON.stringify(updatedUsers));
+      } catch {}
+
+      setNotice(`User account ${editEmail} updated successfully.`);
+    }
+
+    setEditTarget(null);
+  }
+
+  // Confirm Delete
+  function handleConfirmDelete() {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.role === "organizer") {
+      const updatedDeleted = [...deletedOrganizerIds, deleteTarget.id];
+      setDeletedOrganizerIds(updatedDeleted);
+      try {
+        localStorage.setItem("phinma_deleted_organizers_v1", JSON.stringify(updatedDeleted));
+      } catch {}
+      setNotice(`Organizer access removed for ${deleteTarget.email}.`);
+    } else {
+      const updatedUsers = normalUsers.filter((item) => item.id !== deleteTarget.id);
+      setNormalUsers(updatedUsers);
+      try {
+        localStorage.setItem("phinma_registered_students_v1", JSON.stringify(updatedUsers));
+      } catch {}
+      setNotice(`User account ${deleteTarget.email} removed.`);
+    }
+
+    setDeleteTarget(null);
   }
 
   // Submit Account Creation
@@ -294,7 +463,6 @@ export default function AdminUsersPage() {
     }
 
     if (accountType === "organizer") {
-      // Organizer registration rules
       if (!formPublisher.trim()) {
         setError("Please enter a publisher or organization name.");
         return;
@@ -333,10 +501,11 @@ export default function AdminUsersPage() {
           return;
         }
 
-        // Save ID association
         const updatedIds = { ...organizerIdMap, [email]: formSchoolId.trim() };
         setOrganizerIdMap(updatedIds);
-        localStorage.setItem("phinma_account_ids_v1", JSON.stringify(updatedIds));
+        try {
+          localStorage.setItem("phinma_account_ids_v1", JSON.stringify(updatedIds));
+        } catch {}
 
         setNotice(
           result.data?.existingAccount
@@ -352,7 +521,6 @@ export default function AdminUsersPage() {
         setBusy(false);
       }
     } else {
-      // Normal Student / User registration rules
       const isPhinmaSchool = formAffiliation === "student" || formAffiliation === "faculty";
 
       if (isPhinmaSchool) {
@@ -392,7 +560,6 @@ export default function AdminUsersPage() {
         `User account registered for ${email} (${isPhinmaSchool ? `ID: ${formSchoolId}` : "External Guest"}). Initial password set.`
       );
       setModalOpen(false);
-      // Reset form defaults
       setFormEmail("");
     }
   }
@@ -573,12 +740,13 @@ export default function AdminUsersPage() {
                 <th scope="col">Course / Program</th>
                 <th scope="col">Publisher Organization</th>
                 <th scope="col">Status</th>
+                <th scope="col" className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <td colSpan={8} className="text-center py-12 text-muted-foreground">
                     No accounts found matching your filters.
                   </td>
                 </tr>
@@ -713,6 +881,32 @@ export default function AdminUsersPage() {
                           <span className="admin-status-dot" aria-hidden="true" />
                           Active
                         </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="text-right">
+                        <div className="admin-row-actions-cell">
+                          <button
+                            type="button"
+                            className="admin-action-btn edit"
+                            title={`Edit ${record.email}`}
+                            aria-label={`Edit ${record.email}`}
+                            onClick={() => handleStartEdit(record)}
+                          >
+                            <Pencil size={12} aria-hidden="true" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-action-btn delete"
+                            title={`Delete ${record.email}`}
+                            aria-label={`Delete ${record.email}`}
+                            onClick={() => setDeleteTarget(record)}
+                          >
+                            <Trash2 size={12} aria-hidden="true" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -915,7 +1109,7 @@ export default function AdminUsersPage() {
                           onChange={(e) => setFormCourse(e.target.value)}
                           required
                         >
-                          {courses.map((crs) => (
+                          {formCourses.map((crs) => (
                             <option key={crs.code} value={crs.code}>
                               {crs.code} · {crs.name}
                             </option>
@@ -977,6 +1171,200 @@ export default function AdminUsersPage() {
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Edit Account */}
+        {editTarget && (
+          <div
+            className="admin-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-modal-title"
+          >
+            <div className="admin-modal-dialog">
+              <div className="admin-modal-header">
+                <h2 id="edit-modal-title">Edit Account Details</h2>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label="Close dialog"
+                  onClick={() => setEditTarget(null)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit}>
+                <div className="admin-modal-body">
+                  {/* Account summary note */}
+                  <div className="p-3 bg-muted rounded-lg border border-border text-xs text-muted-foreground">
+                    Editing <strong>{editTarget.email}</strong> ({editTarget.role === "organizer" ? "Organizer" : "Normal User"}).
+                  </div>
+
+                  {/* Affiliation Dropdown (For Normal Users) */}
+                  {editTarget.role === "member" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-affiliation">Affiliation / Persona</Label>
+                      <select
+                        id="edit-affiliation"
+                        className="course-select"
+                        value={editAffiliation}
+                        onChange={(e) => setEditAffiliation(e.target.value as AffiliationType)}
+                      >
+                        <option value="student">PHINMA UI Student (Requires ID & @phinmaed.com)</option>
+                        <option value="faculty">PHINMA UI Faculty / Staff (Requires ID & @phinmaed.com)</option>
+                        <option value="external">External Guest / Attendee (No school ID required)</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* School ID */}
+                  {(editTarget.role === "organizer" || editAffiliation !== "external") && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="edit-school-id">
+                          PHINMA School ID <span className="text-destructive">*</span>
+                        </Label>
+                        <span className="text-xs text-muted-foreground font-mono">Format: 04-2324-039960</span>
+                      </div>
+                      <Input
+                        id="edit-school-id"
+                        type="text"
+                        placeholder="04-2324-039960"
+                        maxLength={14}
+                        value={editSchoolId}
+                        onChange={(e) => setEditSchoolId(formatSchoolIdInput(e.target.value))}
+                        required
+                      />
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-email">
+                      Account Email Address <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="edit-email"
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Department & Course */}
+                  {(editTarget.role === "organizer" || editAffiliation !== "external") && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-department">Department / College</Label>
+                        <select
+                          id="edit-department"
+                          className="course-select"
+                          value={editDepartment}
+                          onChange={(e) => handleEditDepartmentChange(e.target.value)}
+                        >
+                          {colleges.map((col) => (
+                            <option key={col.code} value={col.name}>
+                              {col.code} · {col.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-course">Assigned Course</Label>
+                        <select
+                          id="edit-course"
+                          className="course-select"
+                          value={editCourse}
+                          onChange={(e) => setEditCourse(e.target.value)}
+                          required
+                        >
+                          {editCourses.map((crs) => (
+                            <option key={crs.code} value={crs.code}>
+                              {crs.code} · {crs.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Publisher (If Organizer) */}
+                  {editTarget.role === "organizer" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-publisher">
+                        Publisher / Organization Name <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="edit-publisher"
+                        value={editPublisher}
+                        onChange={(e) => setEditPublisher(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="admin-modal-footer">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditTarget(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Delete Confirmation Dialog */}
+        {deleteTarget && (
+          <div
+            className="admin-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
+          >
+            <div className="admin-modal-dialog admin-confirm-dialog">
+              <div className="admin-confirm-body">
+                <div className="admin-confirm-icon" aria-hidden="true">
+                  <AlertTriangle size={24} />
+                </div>
+                <h3 id="delete-dialog-title">Remove Account</h3>
+                <p>
+                  Are you sure you want to remove <strong>{deleteTarget.email}</strong>?{" "}
+                  {deleteTarget.schoolId !== "External" && `(ID: ${deleteTarget.schoolId})`}
+                  <br />
+                  This will revoke their access to campus events.
+                </p>
+              </div>
+
+              <div className="admin-modal-footer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDeleteTarget(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleConfirmDelete}
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                  Remove Account
+                </Button>
+              </div>
             </div>
           </div>
         )}
