@@ -377,14 +377,21 @@ button:disabled { cursor: wait; }
 .workspace-navigation a { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 10px 13px; font-size: 14px; font-weight: 500; color: var(--muted-foreground); border-radius: 8px; }
 .workspace-navigation a[aria-current="page"] { background: var(--muted); color: var(--primary); font-weight: 600; }
 .workspace-navigation a:hover { background: var(--muted); color: var(--foreground); }
-.sidebar-university { margin-top: auto; padding: 24px 14px; }
-.sidebar-university .university-logo { width: 126px; height: 63px; }
-.sidebar-university p { font-size: 12px; color: var(--muted-foreground); line-height: 1.7; margin-top: 12px; }
-.sidebar-account { padding: 12px; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; gap: 10px; }
+.sidebar-account-container { position: relative; margin-top: auto; width: 100%; }
+.sidebar-account-card { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); display: flex; align-items: center; gap: 10px; cursor: pointer; text-align: left; color: inherit; font: inherit; transition: background-color 140ms ease, border-color 140ms ease; }
+.sidebar-account-card:hover, .sidebar-account-card.is-active { background: var(--muted); border-color: var(--primary); }
 .account-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--secondary); color: var(--primary); font-size: 14px; font-weight: 600; }
-.sidebar-account > div { min-width: 0; }
-.sidebar-account strong { display: block; font-size: 12px; font-weight: 500; line-height: 1.4; }
-.sidebar-account > div > span { display: block; font-size: 11px; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.sidebar-account-meta { min-width: 0; flex: 1; }
+.sidebar-account-meta strong { display: block; font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-account-meta span { display: block; font-size: 11px; color: var(--muted-foreground); line-height: 1.3; margin-top: 2px; text-transform: capitalize; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-account-chevron { flex: none; color: var(--muted-foreground); transition: transform 160ms ease, color 140ms ease; }
+.sidebar-account-card:hover .sidebar-account-chevron, .sidebar-account-card.is-active .sidebar-account-chevron { color: var(--foreground); }
+.sidebar-account-chevron.is-open { transform: rotate(180deg); }
+.sidebar-account-popover { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 50; padding: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; gap: 2px; animation: popover-fade-in 140ms ease-out; }
+@keyframes popover-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.sidebar-account-popover-item { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: none; border-radius: 6px; background: transparent; color: var(--foreground); font-size: 13px; font-weight: 500; cursor: pointer; text-align: left; transition: background-color 120ms ease, color 120ms ease; }
+.sidebar-account-popover-item:hover, .sidebar-account-popover-item:focus-visible { background: var(--muted); color: var(--destructive); }
+.sidebar-account-popover-item:disabled { opacity: 0.6; cursor: wait; }
 .sign-out-action { display: inline-flex; align-items: center; gap: 10px; min-height: 36px; padding: 5px 14px; font-size: 13px; color: var(--muted-foreground); }
 .sign-out-action:hover { color: var(--destructive); }
 .field-error { color: var(--destructive); font-size: 12px; padding-top: 6px; }
