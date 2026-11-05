@@ -78,14 +78,14 @@ button:disabled { cursor: wait; }
 .site-header { position: sticky; top: 0; z-index: 20; background: var(--card); border-bottom: 1px solid var(--border); border-top: 4px solid #006341; }
 .site-header.over-hero { margin-bottom: -77px; }
 .site-header.is-transparent { --ring: var(--gold); background: transparent; border-color: transparent; }
-.site-header.is-transparent .university-logo { background: #fff; }
+.site-header.is-transparent .university-logo { background: linear-gradient(to bottom, #f8ce00 0 58%, #4ade80 58% 100%); }
 .site-header.is-transparent .nav-link { color: #fff; }
 .site-header.is-transparent .nav-link:hover, .site-header.is-transparent .nav-link[aria-current="page"] { background: #ffffff18; }
 .site-header.is-transparent :is(.icon-button, .mobile-menu-toggle) { background: transparent; border-color: #ffffff66; color: #fff; }
 .site-header.is-transparent .primary-link { background: var(--gold); color: var(--forest); }
 .header-main { display: flex; align-items: center; justify-content: space-between; min-height: 72px; gap: 20px; }
 .site-brand { display: flex; align-items: center; flex-shrink: 0; }
-.university-logo { display: inline-block; flex: none; width: 110px; height: 55px; background: linear-gradient(to bottom, #f8ce00 0 58%, #344b21 58% 100%); mask: url("/images/phinma-ui-logo-white.png") center / contain no-repeat; }
+.university-logo { display: inline-block; flex: none; width: 110px; height: 55px; background: linear-gradient(to bottom, #f8ce00 0 58%, #344b21 58% 100%); mask: url("/images/phinma-ui-logo-white.png") center / contain no-repeat; -webkit-mask: url("/images/phinma-ui-logo-white.png") center / contain no-repeat; }
 .desktop-nav { display: flex; align-items: center; gap: 6px; margin-inline: auto; }
 .nav-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; color: var(--muted-foreground); font-weight: 500; }
 .nav-link { padding-inline: 9px; border-radius: 6px; }
@@ -332,7 +332,7 @@ button:disabled { cursor: wait; }
 .rejection-note { font-size: 13px; line-height: 1.7; color: var(--destructive); padding: 12px; border-radius: 8px; background: #fdf0ee; }
 .site-footer { --ring: var(--gold); background: var(--forest); color: white; border-top: 4px solid var(--gold); }
 .footer-brand { display: flex; align-items: center; gap: 20px; }
-.site-footer .university-logo { background: white; }
+.site-footer .university-logo { background: linear-gradient(to bottom, #f8ce00 0 58%, #4ade80 58% 100%); }
 .site-footer a:hover { color: var(--gold); }
 .site-footer a { align-items: center; display: inline-flex; }
 .contact-intro { padding-block: 24px 40px; max-width: 700px; }
@@ -638,7 +638,8 @@ button:disabled { cursor: wait; }
 }
 
 [data-theme="dark"] .public-discovery { --background: #101c16; }
-[data-theme="dark"] .university-logo { background: #f4f6f2; }
+/* Consistent university logo colors across dark and light themes */
+[data-theme="dark"] .university-logo { background: linear-gradient(to bottom, #f8ce00 0 58%, #4ade80 58% 100%); }
 [data-theme="dark"] :is(.form-error, .rejection-note) { background: #412821; }
 [data-theme="dark"] :is(.success-notice, .status-approved) { background: #203f2e; color: #a6e6ba; }
 [data-theme="dark"] :is(.revision-note, .status-pending) { background: #403521; color: #f4d78a; }
@@ -755,7 +756,7 @@ button:disabled { cursor: wait; }
 .mobile-nav > a { display: flex; align-items: center; gap: 12px; padding-inline: 12px; border-radius: 6px; }
 .mobile-nav > a[aria-current="page"] { background: var(--muted); color: var(--primary); font-weight: 600; }
 .mobile-nav .navigation-group-label:not(:first-child) { border-top: 1px solid var(--border); margin-top: 8px; }
-.sidebar-crest { width: 38px; height: 23px; flex: none; background: var(--primary); mask: url("/images/phinma-ui-logo-white.png") center top / 80px 40px no-repeat; }
+.sidebar-crest { width: 38px; height: 23px; flex: none; background: #f8ce00; mask: url("/images/phinma-ui-logo-white.png") center top / 80px 40px no-repeat; -webkit-mask: url("/images/phinma-ui-logo-white.png") center top / 80px 40px no-repeat; }
 .workspace-navigation .sidebar-section-label { margin-bottom: 8px; }
 .workspace-navigation .campus-navigation-label { margin-top: 24px; }
 .workspace-navigation a { min-height: 46px; }

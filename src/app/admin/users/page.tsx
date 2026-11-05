@@ -27,7 +27,7 @@ import { useFeedbackToasts } from "@/components/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { colleges, collegeLabel } from "@/lib/academics";
+import { colleges } from "@/lib/academics";
 import { roleHome } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import "../admin.css";
@@ -624,30 +624,42 @@ export default function AdminUsersPage() {
         {/* Metrics Summary Strip */}
         <div className="admin-users-metrics">
           <div className="admin-metric-card">
-            <span className="metric-label">
-              <Users size={14} /> Total Accounts
-            </span>
+            <div className="admin-metric-top">
+              <span className="metric-label">Total Accounts</span>
+              <div className="admin-metric-icon-box">
+                <Users size={16} />
+              </div>
+            </div>
             <span className="metric-value">{allRecords.length}</span>
             <span className="metric-hint">Active university accounts</span>
           </div>
           <div className="admin-metric-card">
-            <span className="metric-label">
-              <Shield size={14} /> Organizers
-            </span>
+            <div className="admin-metric-top">
+              <span className="metric-label">Organizers</span>
+              <div className="admin-metric-icon-box">
+                <Shield size={16} />
+              </div>
+            </div>
             <span className="metric-value">{organizerCount}</span>
             <span className="metric-hint">Authorized council publishers</span>
           </div>
           <div className="admin-metric-card">
-            <span className="metric-label">
-              <GraduationCap size={14} /> Students & Users
-            </span>
+            <div className="admin-metric-top">
+              <span className="metric-label">Students & Users</span>
+              <div className="admin-metric-icon-box">
+                <GraduationCap size={16} />
+              </div>
+            </div>
             <span className="metric-value">{userCount}</span>
             <span className="metric-hint">Normal attendees & members</span>
           </div>
           <div className="admin-metric-card">
-            <span className="metric-label">
-              <UserCheck size={14} /> PHINMA Verified
-            </span>
+            <div className="admin-metric-top">
+              <span className="metric-label">PHINMA Verified</span>
+              <div className="admin-metric-icon-box">
+                <UserCheck size={16} />
+              </div>
+            </div>
             <span className="metric-value">{phinmaCount}</span>
             <span className="metric-hint">With confirmed 04- ID & @phinmaed</span>
           </div>
@@ -785,7 +797,18 @@ export default function AdminUsersPage() {
                       {/* Account User */}
                       <td>
                         <div className="admin-user-cell">
-                          <span className="admin-user-cell-avatar" aria-hidden="true">
+                          <span
+                            className={`admin-user-cell-avatar ${
+                              record.role === "organizer"
+                                ? "is-organizer"
+                                : record.affiliation === "faculty"
+                                ? "is-faculty"
+                                : record.affiliation === "student"
+                                ? "is-student"
+                                : "is-guest"
+                            }`}
+                            aria-hidden="true"
+                          >
                             {initial}
                           </span>
                           <div className="admin-user-cell-meta">
@@ -845,9 +868,17 @@ export default function AdminUsersPage() {
                       {/* Department */}
                       <td>
                         {record.department ? (
-                          <span className="font-medium text-foreground">
-                            {collegeLabel(record.department)}
-                          </span>
+                          <div className="admin-dept-cell">
+                            {(() => {
+                              const col = colleges.find((c) => c.name === record.department);
+                              return (
+                                <>
+                                  {col?.code && <span className="admin-dept-code">{col.code}</span>}
+                                  <span className="admin-dept-name">{record.department}</span>
+                                </>
+                              );
+                            })()}
+                          </div>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -867,7 +898,8 @@ export default function AdminUsersPage() {
                       {/* Publisher Organization */}
                       <td>
                         {record.organizationName ? (
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-primary inline-flex items-center gap-1.5">
+                            <ShieldCheck size={13} className="text-primary flex-none" />
                             {record.organizationName}
                           </span>
                         ) : (
