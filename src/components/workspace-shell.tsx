@@ -107,7 +107,15 @@ function SidebarAccount({
   );
 }
 
-export function WorkspaceShell({ title, children }: { title: string; children: React.ReactNode }) {
+export function WorkspaceShell({
+  title,
+  wide = false,
+  children,
+}: {
+  title: string;
+  wide?: boolean;
+  children: React.ReactNode;
+}) {
   const { user, role } = useAccount();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -254,7 +262,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
             </Link>
           </div>
         </header>
-        <main id="main-content" className="workspace-main">
+        <main id="main-content" className={`workspace-main ${wide ? "is-wide" : ""}`}>
           {children}
         </main>
         <footer className="workspace-footer">

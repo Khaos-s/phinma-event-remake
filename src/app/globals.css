@@ -402,6 +402,9 @@ button:disabled { cursor: wait; }
 .workspace-top-actions { display: flex; align-items: center; gap: 18px; }
 .public-site-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-foreground); }
 .workspace-main { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 28px; width: 100%; max-width: 1164px; margin-inline: auto; padding: 32px; flex: 1; }
+.workspace-main.is-wide,
+.workspace-main:has(.admin-users-page),
+.workspace-main:has(.admin-review-desk) { max-width: 100%; padding-inline: clamp(24px, 3.5vw, 54px); }
 .page-heading { margin-bottom: 0; }
 .page-heading h1 { font-size: 32px; line-height: 1.25; }
 .page-heading p { max-width: 640px; }

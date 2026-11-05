@@ -399,7 +399,7 @@ export default function AdminUsersPage() {
 
   if (account.error) {
     return (
-      <WorkspaceShell title="Manage users">
+      <WorkspaceShell title="Manage users" wide>
         <p role="alert" className="form-error">
           {account.error}
         </p>
@@ -409,7 +409,7 @@ export default function AdminUsersPage() {
 
   if (account.loading || account.role !== "event_admin") {
     return (
-      <WorkspaceShell title="Manage users">
+      <WorkspaceShell title="Manage users" wide>
         <LoadingPanel>Checking administrator access…</LoadingPanel>
       </WorkspaceShell>
     );
@@ -420,7 +420,7 @@ export default function AdminUsersPage() {
   const phinmaCount = allRecords.filter((r) => r.schoolId.startsWith("04-")).length;
 
   return (
-    <WorkspaceShell title="Manage users & organizers">
+    <WorkspaceShell title="Manage users & organizers" wide>
       <div className="admin-users-page">
         {/* Page Header */}
         <div className="admin-users-header-row">
