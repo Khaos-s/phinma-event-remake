@@ -1,5 +1,13 @@
 # PHINMA UI Event: interface direction
 
+## Cinematic campus — 12 November 2026
+
+The owner approved a cinematic, full-screen frontend. `src/app/cinematic.css` extends the existing semantic tokens and presentation components: a viewport-filling campus photograph, asymmetric oversized PHINMA title, gold orbital line graphics, a full-width search surface, spacious event discovery, and forest/gold workspace navigation. Login uses a full-height campus photograph beside the existing form on desktop and stacks on phones. Full screen remains naturally scrollable; expanded filters grow the hero instead of clipping controls.
+
+CSS supplies staggered text entrances, slow photo movement and orbiting graphics. Pause motion stops only decorative loops, preserving entrance visibility after resizing. Reduced-motion media rules remove movement and hide the unnecessary pause control. Existing event reveal/dialog behavior remains. No animation dependency, fake event, new field, or database change was introduced. Account-management behavior is outside this visual change.
+
+Verification: 26 Node tests, lint and production build pass. Real anonymous reads load two published events after Supabase recovery. Browser checks cover the desktop hero/login and 320/390/768px layouts, expanded filters, pause behavior, dark theme, quick view/Escape, and fixture-backed admin/organizer layouts. Fixtures do not prove real sign-in or writes. Reduced-motion rules were inspected in source; OS-level reduced-motion emulation and the complete Playwright suites were not run.
+
 ## Reference and scope
 
 The supplied `design-reference-Design.html` board informs the sidebar, compact topbar, spacing, white cards on a quiet background, segmented filters, restrained status colors, and form organization. Its example application and domain data are not copied into PHINMA UI Event. The external sample AGENTS file informs the short instruction file and linked context documents only.

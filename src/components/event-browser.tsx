@@ -35,6 +35,7 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
   const [organizer, setOrganizer] = useState("all");
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [motionPaused, setMotionPaused] = useState(false);
   const [selected, setSelected] = useState<PublicEvent | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const previewOrigin = useRef<HTMLElement | null>(null);
@@ -120,13 +121,14 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
     <>
       <SiteHeader />
       <main ref={main} id="main-content" className="public-discovery">
-        {home ? <section className="campus-hero" aria-labelledby="board-title">
+        {home ? <section className="campus-hero" aria-labelledby="board-title" data-motion-paused={motionPaused}>
           <div className="campus-hero-art" aria-hidden="true"><Image src="/images/phinma-campus.jpg" alt="" fill sizes="100vw" preload /></div>
+          <div className="campus-orbit" aria-hidden="true"><span /><span /><span /><i /></div>
           <div className="campus-hero-content">
-            <div className="page-container campus-hero-inner"><div className="campus-hero-copy"><p className="campus-eyebrow">PHINMA University of Iloilo</p><div className="hero-identity"><Image src="/icon.png" alt="University of Iloilo crest" width={88} height={88} /><h1 id="board-title">PHINMA UI <span>Event</span></h1></div><p>Discover your next campus moment.</p></div></div>
+            <div className="page-container campus-hero-inner"><div className="campus-hero-copy"><p className="campus-eyebrow"><Image src="/icon.png" alt="University of Iloilo crest" width={36} height={36} />PHINMA University of Iloilo</p><div className="hero-identity"><h1 id="board-title">PHINMA UI <span>Event<span className="hero-period">.</span></span></h1></div><p>Your campus.<br /><strong>Your next great moment.</strong></p><a href="#events" className="hero-discover">Discover what’s on<ArrowDown size={18} aria-hidden="true" /></a></div><div className="hero-location" aria-hidden="true"><span>Iloilo City, Philippines</span><strong>Where we<br />come together.</strong></div></div>
             {searchForm}
           </div>
-          <div className="page-container hero-board-footer"><p className="hero-board-note">A shared calendar. A connected campus.</p><a href="#events">Explore the event board<ArrowDown size={18} aria-hidden="true" /></a></div>
+          <div className="page-container hero-board-footer"><p className="hero-board-note">Discover. Connect. Belong.</p><button type="button" className="hero-motion-toggle" aria-pressed={motionPaused} onClick={() => setMotionPaused(!motionPaused)}>{motionPaused ? "Resume motion" : "Pause motion"}</button><a href="#events">Explore the event board<ArrowDown size={18} aria-hidden="true" /></a></div>
         </section> : searchForm}
         {home && <HappeningNow events={events} now={now} loading={loading} error={error} onUpcoming={() => setFilter("upcoming")} />}
         {featured && <FeaturedEvent event={featured} imageUrl={imageUrls[featured.id]} now={now} />}

@@ -1,5 +1,9 @@
 # PHINMA UI Event: project context
 
+## Latest visual update — 12 November 2026
+
+The approved cinematic campus frontend uses `src/app/cinematic.css`, imported after the canonical globals, for full-screen photo composition, orbital motion graphics, large typography, full-width workspaces and the split-photo login. The hero has an accessible decorative-motion pause control and reduced-motion alternatives. Existing public queries, private drafts, auth, role checks and mutation workflows remain in their existing components. Supabase was rechecked as ACTIVE_HEALTHY and real public reads succeeded during this delivery. See `DESIGN.md` for visual scope and verification limits; prior account-management audit findings are not repaired by this visual update.
+
 ## Product and current scope
 
 PHINMA UI Event is a university event board for PHINMA University of Iloilo. Authorized council, faculty, and staff organizers submit for their assigned organization and department. A PHINMA Event administrator reviews each submission; approval publishes it automatically. Visitors browse approved events without an account. The public department/course catalog follows the university's college-programs directory. The existing CITE Council test assignment is preserved; additional real publishers require trusted setup described in `ORGANIZER_SETUP.md`.

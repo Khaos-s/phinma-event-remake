@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { ToastProvider } from "@/components/toast-provider";
 import "./globals.css";
+import "./cinematic.css";
 
 const displayFont = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-heading", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });

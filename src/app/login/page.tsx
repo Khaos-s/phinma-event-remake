@@ -47,6 +47,7 @@ export default function LoginPage() {
     <>
       <SiteHeader />
       <main id="main-content" className="login-layout">
+        <section className="login-campus" aria-labelledby="login-campus-title"><span>PHINMA University of Iloilo</span><h2 id="login-campus-title">Big ideas.<br />Shared moments.</h2><p>Your campus story starts with a connection.</p><span className="login-campus-coordinate">Iloilo City · Philippines</span></section>
         <div className="login-form-panel">
           <div className="login-form-inner">
             <Link href="/" className="back-link"><ArrowLeft size={16} aria-hidden="true" />Back to campus events</Link>
