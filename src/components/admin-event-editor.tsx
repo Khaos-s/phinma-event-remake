@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { EventDetails } from "@/components/event-details";
 import { LoadingPanel } from "@/components/loading-panel";
@@ -67,7 +67,7 @@ export function AdminEventEditor({ event, imageUrl, now, onCancel, onSaved }: { 
     submission.preventDefault();
     const content = read();
     if (!content || !organization) return;
-    setDraft({ ...content, id: event?.id ?? "draft", organization, organization_id: organization.id, department: organization.department, image_path: event?.image_path ?? "", status: event?.status ?? "pending" });
+    setDraft({ ...content, id: event?.id ?? "draft", organization, organization_id: organization.id, department: organization.department, image_path: event?.image_path ?? "", status: event?.status ?? "approved" });
     requestAnimationFrame(() => previewTitle.current?.focus());
   }
   async function save() {
@@ -98,17 +98,19 @@ export function AdminEventEditor({ event, imageUrl, now, onCancel, onSaved }: { 
       saved = true;
       let cleanupError = "";
       if (event && path !== event.image_path && (await client.storage.from(IMAGE_BUCKET).remove([event.image_path])).error) cleanupError = "The event was saved, but its previous poster could not be removed.";
-      await onSaved(event ? "Event changes saved. The existing publication status was preserved." : "Event created — pending review. Use Approve and publish when ready.", cleanupError);
+      await onSaved(event ? "Event changes saved. The existing publication status was preserved." : "Event published. It is now visible on the public event board.", cleanupError);
     } catch {
       setError(saved ? "The event was saved, but cleanup or refresh could not be confirmed. Refresh the events before continuing." : "The save could not be confirmed. Refresh events before retrying; any uploaded poster was retained.");
     } finally { saving.current = false; setBusy(false); }
   }
 
   return <section className="admin-event-editor" aria-labelledby="admin-editor-title">
-    <div className="panel-section-heading"><div><h1 id="admin-editor-title" ref={editorTitle} tabIndex={-1}>{event ? "Edit event" : "Create event"}</h1><p>{event?.status === "approved" ? "Saved changes to this published event appear immediately." : "Preview the full announcement before saving. New events begin pending review."}</p></div><Button variant="outline" disabled={busy} onClick={onCancel}>Cancel</Button></div>
+    <div className="panel-section-heading"><div><h1 id="admin-editor-title" ref={editorTitle} tabIndex={-1}>{event ? "Edit event" : "Create event"}</h1><p>{event?.status === "approved" ? "Saved changes to this published event appear immediately." : "Enter event details, then preview before saving. Administrator-created events publish immediately."}</p></div><Button variant="outline" disabled={busy} onClick={onCancel}>Cancel</Button></div>
+    <ol className="organizer-step-indicator" aria-label="Event creation steps"><li aria-current={!draft ? "step" : undefined}><span>{draft ? <Check size={14} aria-hidden="true" /> : "1"}</span>Event details</li><li aria-current={draft ? "step" : undefined}><span>2</span>Preview</li></ol>
     {error && <p role="alert" className="form-error">{error}</p>}
     {loading ? <LoadingPanel>Loading publishers…</LoadingPanel> : !organization ? error ? null : <p className="info-note">Create a publisher through Manage organizers before creating an event.</p> : <>
-      <form ref={form} onSubmit={handlePreview} hidden={Boolean(draft)} className="admin-event-form">
+      <form ref={form} onSubmit={handlePreview} hidden={Boolean(draft)} className="admin-event-form" aria-label="Event details">
+        <h2>Event details</h2>
         <div className="space-y-2"><Label htmlFor="admin-publisher">Publisher</Label><select id="admin-publisher" className="course-select" value={organizationId} disabled={Boolean(event)} onChange={e => setOrganizationId(e.target.value)}>{organizations.map(item => <option key={item.id} value={item.id}>{item.name} · {collegeLabel(item.department)}</option>)}</select><p className="text-xs text-muted-foreground">{collegeLabel(organization.department)}{event ? " · Original publisher and creator are preserved." : ""}</p></div>
         <div className="space-y-2"><Label htmlFor="admin-title">Event name</Label><Input id="admin-title" name="title" maxLength={200} defaultValue={event?.title} required /></div>
         <div className="space-y-2"><Label htmlFor="admin-description">Description</Label><Textarea id="admin-description" name="description" rows={5} maxLength={5000} defaultValue={event?.description} required /></div>
@@ -120,7 +122,7 @@ export function AdminEventEditor({ event, imageUrl, now, onCancel, onSaved }: { 
         <div className="admin-form-grid"><div className="space-y-2"><Label htmlFor="admin-start">Start · Philippine time</Label><Input id="admin-start" name="starts_at" type="datetime-local" required defaultValue={event ? philippineTimeInput(event.starts_at) : ""} /></div><div className="space-y-2"><Label htmlFor="admin-end">End · Philippine time</Label><Input id="admin-end" name="ends_at" type="datetime-local" required defaultValue={event ? philippineTimeInput(event.ends_at) : ""} /></div><div className="space-y-2"><Label htmlFor="admin-course">Course</Label><select id="admin-course" key={organizationId} name="course" className="course-select" defaultValue={event?.course ?? courses[0]?.code} required>{courses.map(item => <option key={item.code} value={item.code}>{item.code} · {item.name}</option>)}</select></div><div className="space-y-2"><Label htmlFor="admin-year">Year level</Label><select id="admin-year" name="target_year" className="course-select" defaultValue={event?.target_year ?? ""}><option value="">All college years</option>{[1,2,3,4].map(year => <option key={year} value={year}>{year}{year === 1 ? "st" : year === 2 ? "nd" : year === 3 ? "rd" : "th"} Year</option>)}</select></div></div>
         <Button type="submit">Next: preview event<ArrowRight size={16} aria-hidden="true" /></Button>
       </form>
-      {draft && <section aria-label="Administrator event preview"><h2 ref={previewTitle} tabIndex={-1}>Preview your event</h2><EventDetails event={draft} imageUrl={poster?.url ?? imageUrl} now={now} preview showActions={false} headingId="admin-preview-title" /><div className="admin-editor-actions"><Button variant="outline" disabled={busy} onClick={() => { setDraft(null); requestAnimationFrame(() => form.current?.querySelector<HTMLInputElement>("input[name=title]")?.focus()); }}><ArrowLeft size={16} aria-hidden="true" />Back to details</Button><Button loading={busy} onClick={() => void save()}>{event ? "Save changes" : "Create pending event"}</Button></div></section>}
+      {draft && <section aria-label="Administrator event preview"><h2 ref={previewTitle} tabIndex={-1}>Preview your event</h2><p className="info-note">{event ? "Saving preserves this event’s current review status." : "Preview only. Nothing is saved yet. Publish event makes this announcement public immediately; no separate approval is needed."}</p><EventDetails event={draft} imageUrl={poster?.url ?? imageUrl} now={now} preview showActions={false} headingId="admin-preview-title" /><div className="admin-editor-actions"><Button variant="outline" disabled={busy} onClick={() => { setDraft(null); requestAnimationFrame(() => form.current?.querySelector<HTMLInputElement>("input[name=title]")?.focus()); }}><ArrowLeft size={16} aria-hidden="true" />Back to details</Button><Button loading={busy} onClick={() => void save()}>{event ? "Save changes" : "Publish event"}</Button></div></section>}
     </>}
   </section>;
 }

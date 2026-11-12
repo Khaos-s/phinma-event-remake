@@ -111,7 +111,7 @@ export default function AdminPage() {
   if (account.error) return <WorkspaceShell title="Manage events"><p className="form-error" role="alert">{account.error}</p></WorkspaceShell>;
   if (loading || account.loading || account.role !== "event_admin") return <WorkspaceShell title="Manage events"><LoadingPanel>Checking administrator access…</LoadingPanel></WorkspaceShell>;
 
-  if (editor !== undefined) return <WorkspaceShell title="Manage events"><AdminEventEditor key={editor?.id ?? "new"} event={editor} now={reviewNow} imageUrl={editor ? imageUrls[editor.id] : undefined} onCancel={() => { setEditor(undefined); requestAnimationFrame(() => submissionsHeading.current?.focus({ preventScroll: true })); }} onSaved={async (message, cleanupError) => { setEditor(undefined); setNotice(message); setError(cleanupError); setFilter("all"); await loadEvents(); submissionsHeading.current?.focus({ preventScroll: true }); }} /></WorkspaceShell>;
+  if (editor !== undefined) return <WorkspaceShell title="Manage events"><AdminEventEditor key={editor?.id ?? "new"} event={editor} now={reviewNow} imageUrl={editor ? imageUrls[editor.id] : undefined} onCancel={() => { setEditor(undefined); requestAnimationFrame(() => submissionsHeading.current?.focus({ preventScroll: true })); }} onSaved={async (message, cleanupError) => { setEditor(undefined); setNotice(message); setError(cleanupError); setFilter(editor === null ? "approved" : "all"); await loadEvents(); submissionsHeading.current?.focus({ preventScroll: true }); }} /></WorkspaceShell>;
 
   const pending = events.filter((item) => item.status === "pending");
   const reviewed = events.filter((item) => item.status !== "pending");

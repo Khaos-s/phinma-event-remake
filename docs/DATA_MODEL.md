@@ -1,6 +1,6 @@
 # PHINMA UI Event: data and access
 
-The eight numbered migrations in `supabase/sql/` are applied in order, including `008_admin_management.sql`. All eight are applied to hosted Supabase. Add new numbered migrations; do not rewrite applied SQL.
+The nine numbered migrations in `supabase/sql/` are applied in order, including `009_admin_direct_publication.sql`. All nine are applied to hosted Supabase. Add new numbered migrations; do not rewrite applied SQL.
 
 ## Catalog and publisher identity
 
@@ -26,7 +26,7 @@ Review status is `pending`, `approved`, or `rejected`. Pending requires null rev
 | --- | --- | --- | --- |
 | Read approved event | Yes | Yes | Yes |
 | Read pending/rejected event | No | Own only | All |
-| Insert event | No | Own pending, assigned organization/department/course | `admin_save_event`, pending |
+| Insert event | No | Own pending, assigned organization/department/course | `admin_save_event`, approved with current administrator as reviewer |
 | Direct content update | No | Own rejected events in current assigned organization only | No |
 | Resubmit RPC | No | Own rejected events in current assigned organization only | No |
 | Direct review/identity update or delete | No | No | No |
@@ -64,6 +64,6 @@ Migration 008 adds the assigned course and database-owned `events.updated_at`. T
 
 The `admin-register-organizer` hosted Edge Function validates the user JWT using Auth `getUser`, then checks the current administrator grant before any Auth Admin operation. Its service role key exists only in the hosted function’s automatic environment. No privileged key is added to Next.js or Vercel. The platform JWT toggle is off because the handler performs its own user verification (compatible with current signing keys); missing/invalid sessions fail closed. New accounts receive an administrator-set 12–128 character initial password and administrator-confirmed email. This operation sends no email. Existing member accounts retain their existing password. A definite assignment rejection cleans up only a newly created account; unknown outcomes retain it so a possibly completed assignment is not deleted. Repeating registration can finish setup. Cleanup failure is reported explicitly.
 
-`admin_save_event` creates pending events as the current administrator for a selected publisher, or edits an existing event without changing creator, organization/department, creation time, status or review metadata. `admin_delete_event` deletes any review status only after checking the current administrator. Both edit/delete require the exact database version and fail after a concurrent review, revision or edit. There are no new direct administrator UPDATE/DELETE policies or table grants. New private-bucket Storage policies allow administrator poster uploads and deletion only when no event references that path. An edit retains the original creator’s poster prefix; definite rejected saves clean the new unreferenced upload, unknown outcomes retain it, and old posters are removed only after a confirmed save. Event deletion returns its poster path for subsequent Storage API cleanup.
+`admin_save_event` creates approved events as the current administrator and records that administrator and publication time for a selected publisher, or edits an existing event without changing creator, organization/department, creation time, status or review metadata. `admin_delete_event` deletes any review status only after checking the current administrator. Both edit/delete require the exact database version and fail after a concurrent review, revision or edit. There are no new direct administrator UPDATE/DELETE policies or table grants. New private-bucket Storage policies allow administrator poster uploads and deletion only when no event references that path. An edit retains the original creator’s poster prefix; definite rejected saves clean the new unreferenced upload, unknown outcomes retain it, and old posters are removed only after a confirmed save. Event deletion returns its poster path for subsequent Storage API cleanup.
 
-Hosted `supabase/tests/admin_management.sql` verifies administrator-only RPCs, course restrictions on all organizer write paths, registration retries and protected existing roles, pending creation, published edits, preserved identity/review, stale versions, deletion and revocation in a rolled-back transaction. The three previous hosted regression suites also pass. Browser fixtures and Auth Admin unit mocks cover UI and failure compensation; they do not prove a real new account’s password sign-in or real Storage transfer.
+Hosted `supabase/tests/admin_management.sql` verifies administrator-only RPCs, course restrictions on all organizer write paths, registration retries and protected existing roles, direct publication, published edits, preserved identity/review, stale versions, deletion and revocation in a rolled-back transaction. The three previous hosted regression suites also pass. Browser fixtures and Auth Admin unit mocks cover UI and failure compensation; they do not prove a real new account’s password sign-in or real Storage transfer.

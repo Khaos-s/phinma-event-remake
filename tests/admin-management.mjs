@@ -41,7 +41,7 @@ async function fixture(role="event_admin") {
       assert.equal(Object.hasOwn(body,"status"),false);assert.equal(Object.hasOwn(body,"created_by"),false);
       if(state.saveError){const failure=state.saveError;state.saveError=null;return json(failure,failure.status??400);}
       if(body.event_id){const row=rows.find(item=>item.id===body.event_id);assert.equal(body.expected_updated_at,row.updated_at);Object.assign(row,{title:body.event_title,description:body.event_description,image_path:body.poster_path,course:body.event_course,starts_at:body.event_starts_at,ends_at:body.event_ends_at,updated_at:`2026-10-27T00:00:${state.version++}Z`});return json(row.id);}
-      const row={...rows[0],id:"30000000-0000-4000-8000-000000000004",created_by:adminId,organization_id:body.publisher_id,organization:management,department:management.department,title:body.event_title,description:body.event_description,image_path:body.poster_path,course:body.event_course,starts_at:body.event_starts_at,ends_at:body.event_ends_at,status:"pending",updated_at:"2026-10-27T00:00:09Z"};rows.push(row);return json(row.id);
+      const row={...rows[0],id:"30000000-0000-4000-8000-000000000004",created_by:adminId,organization_id:body.publisher_id,organization:management,department:management.department,title:body.event_title,description:body.event_description,image_path:body.poster_path,course:body.event_course,starts_at:body.event_starts_at,ends_at:body.event_ends_at,status:"approved",updated_at:"2026-10-27T00:00:09Z"};rows.push(row);return json(row.id);
     }
     if(path==="/rest/v1/rpc/admin_delete_event"){
       const body=request.postDataJSON();calls.push({type:"delete",body});const index=rows.findIndex(row=>row.id===body.event_id);assert.equal(body.expected_updated_at,rows[index].updated_at);const [row]=rows.splice(index,1);return json(row.image_path);
@@ -93,12 +93,13 @@ try {
   assert.equal(await page.getByLabel("Event poster",{exact:true}).evaluate(element=>element.files.length),1);
   await page.getByRole("button",{name:"Next: preview event",exact:true}).click();
   for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});assert.equal(await noOverflow(page),true);await page.screenshot({path:`.taste-skill/admin-management/preview-${width}.png`,fullPage:true});}
-  await page.getByRole("button",{name:"Create pending event",exact:true}).click();
-  await page.getByRole("status").filter({hasText:"Event created"}).waitFor();
+  await page.getByRole("button",{name:"Publish event",exact:true}).click();
+  await page.getByRole("status").filter({hasText:"Event published"}).waitFor();
   await page.waitForFunction(()=>document.activeElement?.id === "submissions-title");
+  assert.equal(rows.find(row=>row.title==="Fixture new admin event").status,"approved");
   const created=calls.find(call=>call.type==="save");assert.equal(created.body.event_starts_at,"2027-01-01T01:00:00.000Z");assert.equal(created.body.expected_updated_at,null);assert.ok(created.body.poster_path.startsWith(adminId+"/"));
   await page.getByRole("button",{name:"Published",exact:true}).click();
-  await page.getByRole("button",{name:"Edit event",exact:true}).click();
+  await page.getByRole("row").filter({hasText:"Fixture approved"}).getByRole("button",{name:"Edit event",exact:true}).click();
   assert.equal(await page.getByLabel("Publisher",{exact:true}).isDisabled(),true);
   await page.getByLabel("Event name",{exact:true}).fill("Fixture edited published event");
   await page.getByRole("button",{name:"Next: preview event",exact:true}).click();
@@ -108,7 +109,7 @@ try {
   await page.getByRole("button",{name:"Published",exact:true}).click();
   // A definite rejection cleans only the new poster; an unknown result retains it.
   for(const failure of [{code:"P0001",message:"This event changed. Refresh before editing again",status:400},{code:"08006",message:"Connection lost",status:503}]) {
-    await page.getByRole("button",{name:"Edit event",exact:true}).click();
+    await page.getByRole("row").filter({hasText:"Fixture edited published event"}).getByRole("button",{name:"Edit event",exact:true}).click();
     await page.getByLabel("Replace poster (optional)",{exact:true}).setInputFiles({name:"replacement.jpg",mimeType:"image/jpeg",buffer:photo});
     await page.getByRole("button",{name:"Next: preview event",exact:true}).click();
     const cleanups=calls.filter(call=>call.type==="cleanup").length;
@@ -121,8 +122,8 @@ try {
     await page.waitForFunction(()=>document.activeElement?.id==="submissions-title");
   }
   const deletedBefore=calls.filter(call=>call.type==="delete").length;
-  page.once("dialog",dialog=>dialog.dismiss());await page.getByRole("button",{name:"Delete event",exact:true}).click();assert.equal(calls.filter(call=>call.type==="delete").length,deletedBefore);
-  page.once("dialog",dialog=>dialog.accept());await page.getByRole("button",{name:"Delete event",exact:true}).click();
+  page.once("dialog",dialog=>dialog.dismiss());await page.getByRole("row").filter({hasText:"Fixture edited published event"}).getByRole("button",{name:"Delete event",exact:true}).click();assert.equal(calls.filter(call=>call.type==="delete").length,deletedBefore);
+  page.once("dialog",dialog=>dialog.accept());await page.getByRole("row").filter({hasText:"Fixture edited published event"}).getByRole("button",{name:"Delete event",exact:true}).click();
   await page.getByRole("status").filter({hasText:"Event deleted"}).waitFor();assert.equal(rows.some(row=>row.title==="Fixture edited published event"),false);assert.equal(calls.at(-1).type,"cleanup");
   await page.waitForFunction(()=>document.activeElement?.id === "submissions-title");
   await page.getByRole("button",{name:"All",exact:true}).click();

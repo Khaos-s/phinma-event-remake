@@ -91,7 +91,7 @@ Creating or revising a rejected event uses Details → Preview & submit. Next va
 ## Accepted extension — 27 October 2026
 
 - Administrators register organizer users by email, initial password, authorized publisher/organization, department, and one valid course. The selected course restricts that organizer’s submissions. Existing member accounts retain their password, and different existing privileged assignments cannot be overwritten.
-- Administrators create pending events with a full preview, inspect all events, edit content in any status, and confirm deletion. Approving a pending event remains the publishing action. Edits to published events take effect immediately while preserving creator/publisher and review metadata.
+- Administrators create directly published events through Event details and Preview, inspect all events, edit content in any status, and confirm deletion. Organizer submissions still require the administrator approval action; administrator-created events publish immediately. Edits to published events take effect immediately while preserving creator/publisher and review metadata.
 - Organizers retain their current rules: own pending creation and own rejected-event revision/resubmission; pending and approved events stay locked.
 - Database rules and server-only Auth APIs enforce access. Stale edits/deletions are rejected, sensitive account data remains admin-only, and failed/uncertain operations preserve useful recovery information.
 - User-account deletion, reassignment of existing privileged roles, organizer editing/deleting approved events, and additional “etc.” capabilities are outside this extension.

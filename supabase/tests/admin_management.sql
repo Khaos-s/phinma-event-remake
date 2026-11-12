@@ -49,9 +49,13 @@ begin
 
   record_id := public.admin_save_event(null,null,publisher,'Admin event','Description',administrator::text||'/event.png',now(),now()+interval '1 hour','BSTM',2::smallint);
   select e.updated_at into old_version from public.workspace_events() e where e.id=record_id;
-  if not exists(select 1 from public.workspace_events() e where e.id=record_id and e.created_by=administrator and e.status='pending') then raise exception 'Admin creation scope/state is wrong'; end if;
-  perform public.approve_event(record_id);
-  begin perform public.admin_save_event(record_id,old_version,publisher,'Stale','Description',administrator::text||'/event.png',now(),now()+interval '1 hour','BSTM',null); raise exception 'Stale content overwrote review'; exception when raise_exception then if sqlerrm not like 'This event changed%' then raise; end if; end;
+  if not exists(select 1 from public.workspace_events() e where e.id=record_id and e.created_by=administrator and e.status='approved' and e.reviewed_by=administrator and e.reviewed_at is not null and e.rejection_reason is null) then raise exception 'Admin creation scope/state is wrong'; end if;
+  begin perform public.approve_event(record_id); raise exception 'Admin creation needed another approval'; exception when raise_exception then if sqlerrm <> 'Event is not pending' then raise; end if; end;
+  execute 'set local role anon';
+  if not exists(select 1 from public.events e where e.id=record_id and e.status='approved') then raise exception 'Admin creation is not public'; end if;
+  execute 'set local role authenticated';
+  perform public.admin_save_event(record_id,old_version,publisher,'Admin event','Description',administrator::text||'/event.png',now(),now()+interval '1 hour','BSTM',2::smallint);
+  begin perform public.admin_save_event(record_id,old_version,publisher,'Stale','Description',administrator::text||'/event.png',now(),now()+interval '1 hour','BSTM',null); raise exception 'Stale content overwrote edit'; exception when raise_exception then if sqlerrm not like 'This event changed%' then raise; end if; end;
   select e.updated_at into version from public.workspace_events() e where e.id=record_id;
   perform public.admin_save_event(record_id,version,publisher,'Published edit','Updated',administrator::text||'/event.png',now(),now()+interval '2 hours','BSBA',null);
   if not exists(select 1 from public.workspace_events() e where e.id=record_id and e.title='Published edit' and e.status='approved' and e.created_by=administrator and e.organization_id=publisher) then raise exception 'Published edit changed protected identity/state'; end if;
