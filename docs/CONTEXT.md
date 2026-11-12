@@ -2,6 +2,8 @@
 
 ## Latest visual update — 12 November 2026
 
+Follow-up: the large hero search was replaced by a shared header search icon next to theme. Its accessible dialog submits a GET query to `/events?q=…#events`; the server page passes bounded text to the existing client filter. Audience filters live beside results. All events, Contact and Showcase now have cinematic photo introductions. This supersedes the earlier hero-search composition below.
+
 The approved cinematic campus frontend uses `src/app/cinematic.css`, imported after the canonical globals, for full-screen photo composition, orbital motion graphics, large typography, full-width workspaces and the split-photo login. The hero has an accessible decorative-motion pause control and reduced-motion alternatives. Existing public queries, private drafts, auth, role checks and mutation workflows remain in their existing components. Supabase was rechecked as ACTIVE_HEALTHY and real public reads succeeded during this delivery. See `DESIGN.md` for visual scope and verification limits; prior account-management audit findings are not repaired by this visual update.
 
 ## Product and current scope

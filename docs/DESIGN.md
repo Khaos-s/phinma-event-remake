@@ -1,5 +1,11 @@
 # PHINMA UI Event: interface direction
 
+## Header search and public page headers — 12 November 2026
+
+The owner requested removal of the large hero search surface. Public pages now share a search icon beside the theme toggle. It opens a native modal with a labeled search field, Escape/backdrop/close dismissal, focus return and restored scrolling. A standard GET form opens `/events?q=…#events`; the App Router page awaits and bounds the string query before passing it to the existing event filter. No new database query, data field or permission is added. Audience filters remain beside the event list. All events, Contact and Showcase use photographic forest/gold introduction panels to match the cinematic homepage. Search works across these shared headers; the showcase's embedded component demonstrations retain their own controls.
+
+Verified with real published records: search narrows CITEBLOX to one event, and clearing restores results. Header/dialog and intro layouts inspected at desktop and 320/390px, including dark theme, input focus, Escape/focus return and body scroll restoration. Existing Node tests, lint/build are delivery checks; full Playwright suites and authenticated writes are outside this change.
+
 ## Cinematic campus — 12 November 2026
 
 The owner approved a cinematic, full-screen frontend. `src/app/cinematic.css` extends the existing semantic tokens and presentation components: a viewport-filling campus photograph, asymmetric oversized PHINMA title, gold orbital line graphics, a full-width search surface, spacious event discovery, and forest/gold workspace navigation. Login uses a full-height campus photograph beside the existing form on desktop and stacks on phones. Full screen remains naturally scrollable; expanded filters grow the hero instead of clipping controls.

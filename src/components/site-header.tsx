@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
-import { ArrowUpRight, CalendarDays, Home, LayoutGrid, Mail, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ArrowUpRight, CalendarDays, Home, LayoutGrid, Mail, Menu, Search, X } from "lucide-react";
 import { useAccount } from "@/components/auth-provider";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,10 +16,20 @@ function subscribeToScroll(update: () => void) {
 const scrollSnapshot = () => window.scrollY > 24;
 const serverScrollSnapshot = () => false;
 
-export function SiteHeader() {
+export function SiteHeader({ searchQuery = "" }: { searchQuery?: string }) {
   const pathname = usePathname();
   const { user, role, loading } = useAccount();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchDialog = useRef<HTMLDialogElement>(null);
+  const searchToggle = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!searchOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    searchDialog.current?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [searchOpen]);
   const scrolled = useSyncExternalStore(subscribeToScroll, scrollSnapshot, serverScrollSnapshot);
   const home = roleHome(role);
   const links = [
@@ -38,10 +48,14 @@ export function SiteHeader() {
           <span role="img" aria-label="PHINMA University of Iloilo" className="university-logo" />
         </Link>
         <nav aria-label="Main navigation" className="desktop-nav">{links.map(({ href, label, icon: Icon }) => { const active = href === "/events" ? pathname.startsWith(href) : pathname === href; return <Link key={href} href={href} className="nav-link" aria-current={active ? "page" : undefined}><Icon size={16} aria-hidden="true" />{label}</Link>; })}<a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer" className="nav-link university-link">Our university<ArrowUpRight size={14} aria-hidden="true" /></a></nav>
-        <div className="header-actions"><ThemeToggle /><div className="desktop-account">{loading ? <span className="nav-account-loading" aria-label="Checking account" /> : <Link href={user ? home : "/login"} className="primary-link">{accountLabel}<ArrowUpRight size={16} aria-hidden="true" /></Link>}{user && <SignOutButton compact />}</div></div>
+        <div className="header-actions"><button ref={searchToggle} type="button" className="icon-button header-search-toggle" aria-label="Search events" aria-haspopup="dialog" onClick={() => { setMenuOpen(false); setSearchOpen(true); }}><Search size={19} aria-hidden="true" /></button><ThemeToggle /><div className="desktop-account">{loading ? <span className="nav-account-loading" aria-label="Checking account" /> : <Link href={user ? home : "/login"} className="primary-link">{accountLabel}<ArrowUpRight size={16} aria-hidden="true" /></Link>}{user && <SignOutButton compact />}</div></div>
         <button type="button" className="mobile-menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-controls="mobile-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
       {menuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="mobile-nav page-container"><span className="navigation-group-label">Explore campus</span>{links.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-current={(href === "/events" ? pathname.startsWith(href) : pathname === href) ? "page" : undefined} onClick={() => setMenuOpen(false)}><Icon size={18} aria-hidden="true" />{label}</Link>)}<a href="https://ui.phinma.edu.ph/" target="_blank" rel="noreferrer">Our university<ArrowUpRight size={16} aria-hidden="true" /></a><span className="navigation-group-label">Your account</span>{!loading && <Link href={user ? home : "/login"} onClick={() => setMenuOpen(false)}>{accountLabel}<ArrowUpRight size={16} aria-hidden="true" /></Link>}{user && <SignOutButton />}</nav>}
+      <dialog ref={searchDialog} className="header-search-dialog" aria-labelledby="header-search-title" onClose={() => { setSearchOpen(false); searchToggle.current?.focus({ preventScroll: true }); }} onClick={event => { if (event.target === event.currentTarget) searchDialog.current?.close(); }}>
+        <div className="header-search-heading"><div><p>Discover your campus</p><h2 id="header-search-title">Find your next moment.</h2></div><button type="button" className="icon-button" aria-label="Close search" onClick={() => searchDialog.current?.close()}><X size={20} aria-hidden="true" /></button></div>
+        <form action="/events#events" method="get" role="search" aria-label="Search campus events"><label htmlFor="header-event-search">Event, course, or department</label><div className="header-search-field"><Search size={20} aria-hidden="true" /><input id="header-event-search" name="q" type="search" maxLength={200} defaultValue={searchQuery} placeholder="What interests you?" autoFocus /><button type="submit">Search<ArrowUpRight size={18} aria-hidden="true" /></button></div><p>Explore published events across our university.</p></form>
+      </dialog>
     </header>
   );
 }

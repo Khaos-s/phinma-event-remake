@@ -3,7 +3,7 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, CalendarDays, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowDown, ArrowRight, CalendarDays, SlidersHorizontal, X } from "lucide-react";
 import { EventCard } from "@/components/event-card";
 import { EventDetails } from "@/components/event-details";
 import { FeaturedEvent } from "@/components/featured-event";
@@ -23,12 +23,12 @@ const timeFilters: { value: EventStage | "all"; label: string }[] = [
   { value: "ongoing", label: "Ongoing" }, { value: "past", label: "Past" },
 ];
 
-export function EventBrowser({ home = false }: { home?: boolean }) {
+export function EventBrowser({ home = false, initialSearch = "" }: { home?: boolean; initialSearch?: string }) {
   const client = useMemo(() => createClient(), []);
   const [events, setEvents] = useState<PublicEvent[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<EventStage | "all">("all");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [year, setYear] = useState("all");
   const [department, setDepartment] = useState("all");
   const [course, setCourse] = useState("all");
@@ -100,12 +100,8 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
   }, [resultsKey]);
   function openPreview(event: PublicEvent) { previewOrigin.current = document.activeElement as HTMLElement; setSelected(event); }
 
-  const searchForm = <form className={`page-container discovery-search ${home ? "campus-search" : "directory-search"}`} role="search" aria-label="Find campus events" onSubmit={event => { event.preventDefault(); document.getElementById("events")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); }}>
-    <div className="search-primary-fields">
-      <div className="filter-field"><label className="sr-only" htmlFor="event-search">What interests you?</label><div className="event-search"><Search size={18} aria-hidden="true" /><input id="event-search" type="search" placeholder="Explore campus events" value={search} onChange={event => setSearch(event.target.value)} /></div></div>
-      <Button type="submit"><Search size={16} aria-hidden="true" /><span>Find events</span></Button>
-      <button type="button" className="filter-toggle" aria-controls="event-filter-controls" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={17} aria-hidden="true" />{filtersOpen ? "Hide filters" : "Show filters"}</button>
-    </div>
+  const audienceFilters = <div className="directory-filters">
+    <button type="button" className="filter-toggle" aria-controls="event-filter-controls" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={17} aria-hidden="true" />{filtersOpen ? "Hide filters" : "Show filters"}</button>
     <div id="event-filter-controls" className="discovery-search-controls" data-open={filtersOpen}>
       <div className="search-audience-fields">
         <div className="filter-field"><label htmlFor="department-filter">Department</label><select id="department-filter" value={department} onChange={event => { setDepartment(event.target.value); setCourse("all"); }}><option value="all">All departments</option>{colleges.map(college => <option key={college.code} value={college.name}>{collegeLabel(college.name)}</option>)}</select></div>
@@ -115,25 +111,26 @@ export function EventBrowser({ home = false }: { home?: boolean }) {
       </div>
       <div className="search-secondary-row"><button type="button" className="clear-filters" onClick={clearFilters}>Reset filters</button><span className="search-timezone">All times in PHT</span></div>
     </div>
-  </form>;
+  </div>;
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader searchQuery={search} />
       <main ref={main} id="main-content" className="public-discovery">
         {home ? <section className="campus-hero" aria-labelledby="board-title" data-motion-paused={motionPaused}>
           <div className="campus-hero-art" aria-hidden="true"><Image src="/images/phinma-campus.jpg" alt="" fill sizes="100vw" preload /></div>
           <div className="campus-orbit" aria-hidden="true"><span /><span /><span /><i /></div>
           <div className="campus-hero-content">
             <div className="page-container campus-hero-inner"><div className="campus-hero-copy"><p className="campus-eyebrow"><Image src="/icon.png" alt="University of Iloilo crest" width={36} height={36} />PHINMA University of Iloilo</p><div className="hero-identity"><h1 id="board-title">PHINMA UI <span>Event<span className="hero-period">.</span></span></h1></div><p>Your campus.<br /><strong>Your next great moment.</strong></p><a href="#events" className="hero-discover">Discover what’s on<ArrowDown size={18} aria-hidden="true" /></a></div><div className="hero-location" aria-hidden="true"><span>Iloilo City, Philippines</span><strong>Where we<br />come together.</strong></div></div>
-            {searchForm}
           </div>
           <div className="page-container hero-board-footer"><p className="hero-board-note">Discover. Connect. Belong.</p><button type="button" className="hero-motion-toggle" aria-pressed={motionPaused} onClick={() => setMotionPaused(!motionPaused)}>{motionPaused ? "Resume motion" : "Pause motion"}</button><a href="#events">Explore the event board<ArrowDown size={18} aria-hidden="true" /></a></div>
-        </section> : searchForm}
+        </section> : <section className="directory-intro page-container" aria-labelledby="directory-title"><p className="eyebrow">The campus calendar</p><h1 id="directory-title">Find your people.<br /><span>Make a moment.</span></h1><p>Discover what’s happening across PHINMA University of Iloilo.</p><a href="#events">Explore all events<ArrowDown size={18} aria-hidden="true" /></a></section>}
         {home && <HappeningNow events={events} now={now} loading={loading} error={error} onUpcoming={() => setFilter("upcoming")} />}
         {featured && <FeaturedEvent event={featured} imageUrl={imageUrls[featured.id]} now={now} />}
         <section id="events" className={`page-container ${home ? "event-section" : "event-directory"}`} aria-labelledby="events-title">
-          <div className="section-heading"><div>{home ? <h2 id="events-title">Explore the event board</h2> : <h1 id="events-title">All events</h1>}<p>Discover events by department, course, organizer, and year level.</p></div>{home ? <Link href="/events" className="text-link">View all events<ArrowRight size={16} aria-hidden="true" /></Link> : <span className="calendar-timezone"><CalendarDays size={16} aria-hidden="true" />Philippine time · PHT</span>}</div>
+          <div className="section-heading"><div>{home ? <h2 id="events-title">Explore the event board</h2> : <h2 id="events-title">All events</h2>}<p>Discover events by department, course, organizer, and year level.</p></div>{home ? <Link href="/events" className="text-link">View all events<ArrowRight size={16} aria-hidden="true" /></Link> : <span className="calendar-timezone"><CalendarDays size={16} aria-hidden="true" />Philippine time · PHT</span>}</div>
+          {search && <p className="search-query-summary">Results for <strong>“{search}”</strong> <button type="button" onClick={() => setSearch("")}>Clear search</button></p>}
+          {audienceFilters}
           <div className="college-filters" role="group" aria-label="Filter events by college"><button type="button" aria-pressed={department === "all"} onClick={() => { setDepartment("all"); setCourse("all"); }}>All colleges</button>{colleges.map(college => <button type="button" key={college.code} title={college.name} aria-label={collegeLabel(college.name)} aria-pressed={department === college.name} onClick={() => { setDepartment(college.name); setCourse("all"); }}>{college.code}</button>)}</div>
           <div className="event-board-layout">
             <div className="board-results">

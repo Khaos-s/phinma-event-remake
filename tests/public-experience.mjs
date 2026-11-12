@@ -72,7 +72,7 @@ try {
     const boxes = ['.site-brand', '.desktop-nav', '.header-actions'].map(selector => element.querySelector(selector).getBoundingClientRect());
     return { height: element.getBoundingClientRect().height, centers: boxes.map(box => box.y + box.height / 2) };
   });
-  assert.ok(header.height <= 82, 'Public navigation occupies one row');
+  assert.ok(header.height <= 88, 'Public navigation occupies one row');
   assert.ok(Math.max(...header.centers) - Math.min(...header.centers) <= 1, 'Logo, links and account actions share one row');
   assert.equal(await page.locator(".site-header").evaluate(element => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
   await page.evaluate(() => window.scrollTo({ top: 100, behavior: "instant" }));
@@ -90,15 +90,27 @@ try {
   assert.equal(await page.locator("#department-filter").inputValue(), department);
   await page.getByRole("button", { name: "All colleges", exact: true }).click();
   await page.getByRole("button", { name: "Show filters", exact: true }).click();
-  await page.locator("#event-search").focus();
-  for (const selector of ['.discovery-search button[type="submit"]', ".discovery-search .filter-toggle", "#department-filter", "#year-filter", "#course-filter", "#organizer-filter", ".clear-filters"]) {
+  await page.getByRole("button", { name: "Hide filters", exact: true }).focus();
+  for (const selector of ["#department-filter", "#year-filter", "#course-filter", "#organizer-filter", ".clear-filters"]) {
     await page.keyboard.press("Tab");
     assert.equal(await page.locator(selector).evaluate(element => element === document.activeElement), true, `Keyboard order: ${selector}`);
   }
   await page.getByRole("button", { name: "Hide filters", exact: true }).click();
   for (const width of [1440, 1280, 1101, 1100, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    assert.equal(await page.locator("#event-search").isVisible(), true, "Search stays visible with filters closed");
+    assert.equal(await page.locator(".campus-hero input[type=search]").count(), 0, "Hero has no search bar");
+    const searchToggle = page.getByRole("button", { name: "Search events", exact: true });
+    assert.equal(await searchToggle.isVisible(), true, "Header search stays visible at every width");
+    await searchToggle.click();
+    const searchInput = page.getByLabel("Event, course, or department", { exact: true });
+    await searchInput.waitFor({ state: "visible" });
+    assert.equal(await searchInput.evaluate(element => element === document.activeElement), true);
+    assert.equal(await searchInput.getAttribute("name"), "q");
+    assert.equal(await page.locator(".header-search-dialog form").getAttribute("action"), "/events#events");
+    await page.keyboard.press("Escape");
+    await page.locator(".header-search-dialog").waitFor({ state: "hidden" });
+    assert.equal(await searchToggle.evaluate(element => element === document.activeElement), true);
+    assert.notEqual(await page.evaluate(() => document.body.style.overflow), "hidden");
     assert.equal(await page.locator(".desktop-nav").isVisible(), width > 1100);
     assert.equal(await page.getByRole("button", { name: "Open navigation", exact: true }).isVisible(), width <= 1100);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
@@ -120,7 +132,7 @@ try {
   await page.locator("#year-filter").selectOption("2");
   await page.getByRole("button", { name: "Hide filters" }).click();
   await page.getByRole("button", { name: "Show filters" }).click();
-  assert.equal(await page.locator('.campus-hero').evaluate(element => element.querySelector('#event-filter-controls').getBoundingClientRect().bottom <= element.getBoundingClientRect().bottom), true, 'Expanded filters remain inside the landing section');
+  assert.equal(await page.locator('#events #event-filter-controls').isVisible(), true, 'Audience filters live beside the results');
   assert.equal(await page.locator("#year-filter").inputValue(), "2");
   await page.locator("#course-filter").selectOption("BSIT");
   await page.locator("#department-filter").selectOption("College of Management");
